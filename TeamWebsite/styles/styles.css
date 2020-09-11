@@ -1,0 +1,90 @@
+@font-face {
+  font-family: "Bitter";
+  src: url("../fonts/Bitter-ExtraLight.ttf");
+}
+
+@font-face {
+  font-family: "Fredoka One";
+  src: url("../fonts/FredokaOne-Regular.ttf") format("truetype");
+}
+
+.jumbotron {
+  height: 100vh;
+}
+
+.row {
+  max-width: 100%;
+}
+
+.btn {
+  color: white !important;
+  width: 100% !important;
+}
+
+.profile-image {
+  border-radius: 50%;
+  display: inline-block;
+  height: 160px;
+  width: 160px;
+  margin-right: 50px;
+}
+
+.image-caption {
+  margin-top: 10px;
+  display: block;
+  margin-left: -50px;
+}
+
+.padding-top-md {
+  padding-top: 2em;
+}
+
+.display-4,
+.logo {
+  display: inline-block;
+}
+
+.logo {
+  width: 250px;
+  height: 250px;
+}
+
+.welcome-message {
+  font-family: "Fredoka One", cursive;
+  text-align: left !important;
+  margin-left: 5% !important;
+  margin-bottom: -45px;
+  font-size: 48px;
+}
+
+.display-4 {
+  margin-right: -75px;
+  font-family: "Bitter", serif;
+  font-weight: 200;
+}
+
+@media only screen and (max-width: 768px) {
+  .display-4 {
+    font-size: 1.5rem;
+  }
+
+  .welcome-message {
+    font-size: 40px;
+  }
+}
+
+@media only screen and (max-device-width: 1024px) {
+  .logo {
+    margin-top: 40px;
+  }
+
+  .col-md-2 {
+    max-width: 50%;
+  }
+}
+
+@media only screen and (min-device-width: 1296px) {
+  .logo {
+    margin-top: 40px;
+  }
+}
