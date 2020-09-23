@@ -80,6 +80,15 @@ body {
   .welcome-message {
     font-size: 40px;
   }
+
+  .fab,
+  .fas {
+    font-size: 28px !important;
+  }
+
+  .image-caption {
+    margin-left: 0px;
+  }
 }
 
 @media only screen and (max-device-width: 1024px) {
@@ -97,4 +106,15 @@ body {
   .logo {
     margin-top: 40px;
   }
+}
+
+.fab,
+.fas {
+  color: black;
+  font-size: 24px;
+}
+
+.fab:hover,
+.fas:hover {
+  color: #0e76a8;
 }
