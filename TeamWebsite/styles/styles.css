@@ -8,6 +8,12 @@
   src: url("../fonts/FredokaOne-Regular.ttf") format("truetype");
 }
 
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  padding-bottom: 300px;
+}
+
 .jumbotron {
   height: 100vh;
 }
@@ -63,6 +69,9 @@
   font-weight: 200;
 }
 
+.footer {
+  margin-top: auto;
+}
 @media only screen and (max-width: 768px) {
   .display-4 {
     font-size: 1.5rem;
@@ -78,7 +87,8 @@
     margin-top: 40px;
   }
 
-  .col-md-2 {
+  .col-md-2,
+  .col-sm-4 {
     max-width: 50%;
   }
 }
