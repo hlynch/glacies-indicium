@@ -9,12 +9,16 @@
     <link rel="icon" href="images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="styles/bootstrap.css" />
     <link rel="stylesheet" href="styles/styles.css" />
+
+    <!--Link to icon library-->
+    <link rel="stylesheet" href="styles/all.min.css" />
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <a class="navbar-brand" href="index.html"
-        ><img src="images/logo.png" height="50" width="50"
-      /></a>
+      <a class="navbar-brand" href="index.html">
+        <img src="images/logo.png" height="50" width="50" />
+      </a>
+
       <button
         class="navbar-toggler ml-auto"
         data-toggle="collapse"
@@ -26,12 +30,14 @@
       <div class="collapse navbar-collapse" id="navbarNavDropdown">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link" href="index.html"
-              >Home <span class="sr-only">(current)</span></a
-            >
+            <a class="nav-link" href="index.html">
+              Home
+            </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="team.html">Meet the Team</a>
+            <a class="nav-link" href="team.html">
+              Meet the Team
+            </a>
           </li>
 
           <li class="nav-item dropdown">
@@ -40,8 +46,9 @@
               data-toggle="dropdown"
               aria-haspopup="true"
               aria-expanded="false"
-              >About the Project</a
             >
+              About the Project
+            </a>
             <div class="dropdown-menu" aria-labelledby="dropdown09">
               <a class="dropdown-item" href="documents.html">Documents</a>
               <a class="dropdown-item" href="schedule.html">Schedule</a>
@@ -49,20 +56,58 @@
               <a class="dropdown-item" href="demos.html">Demos</a>
             </div>
           </li>
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="https://github.com/mlgarrett/antarcticapstone"
+              target="_blank"
+            >
+              GitHub Repository
+            </a>
+          </li>
         </ul>
       </div>
     </nav>
     <div class="jumbotron-fluid text-center">
       <h1 class="display-4">Glacies Indicium</h1>
       <img src="images/logo.png" class="logo" alt="team logo" />
-
       <hr class="my-4" />
     </div>
     <div class="container-fluid text-center">
-      <div class="row justify-content-center">
+      <div class="row justify-content-center m-4">
         <h4>About the Project</h4>
       </div>
-
+      <div class="row text-left">
+        <div class="col-md-10 col-sm-12 ml-md-auto mr-md-auto"">
+          <p>
+            We are working with the team at ICEBERG. They are geologists working
+            on categorizing the surface of Antarctica. They are currently able
+            to look at one raster satellite image at a time but are unable to
+            effectively view more than that. Our project is to create a map that
+            allows them to work with the whole continent at once. We will need
+            to create a query tool that lets them focus on curtain rock types at
+            a time and allows for multiple types to be viewed in different
+            colors. Not only will this allow scientists to work with a larger
+            area but there will be an option to download the portion of the map
+            they are currently working with. This means they will have access to
+            this information while they are in Antarctica, where there is no
+            internet connection. To view our capstone project proposal please
+            click
+            <a
+              href="https://www.cefns.nau.edu/~edo/Classes/CS_Capstone/Projects/F20/Salvatore-ICEBERG.pdf"
+              target="_blank"
+            >
+              here
+              <i
+                class="fas fa-external-link-alt"
+                style="font-size: 14px; color: #007bff;"
+              >
+              </i>
+              .
+            </a>
+          </p>
+        </div>
+      </div>
       <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
         <a class="navbar-brand" href="index.html">Glacies Indicium</a>
         <button
@@ -98,6 +143,15 @@
             </li>
             <li class="nav-item active">
               <a class="nav-link" href="demos.html">Demos</a>
+            </li>
+            <li class="nav-item active">
+              <a
+                class="nav-link"
+                href="https://github.com/mlgarrett/antarcticapstone"
+                target="_blank"
+              >
+                GitHub Repository
+              </a>
             </li>
           </ul>
         </div>
