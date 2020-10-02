@@ -49,13 +49,90 @@
               <a class="dropdown-item" href="demos.html">Demos</a>
             </div>
           </li>
+          <li class="nav-item">
+            <a
+              class="nav-link"
+              href="https://github.com/mlgarrett/antarcticapstone"
+              target="_blank"
+            >
+              GitHub Repository
+            </a>
+          </li>
         </ul>
       </div>
     </nav>
-    <div class="jumbotron-fluid text-center">
+    <div class="jumbotron-fluid text-center p-4">
       <h1>Project Requirements</h1>
     </div>
-    <div class="container-fluid text-left margin-bottom-md">
+    <div class="container-fluid text-center">
+      <div class="row text-left">
+        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto">
+          The high level requirements for this project include a query tool that
+          allows users to select different rock types in an array of colors to
+          visualize the landscape of Antarctica. The data acquired in these
+          queries will be possible for download. This allows the scientists our
+          group is working with to access the data from Antarctica, where there
+          is not any internet access. We are also going to have to create a
+          database with the raster images precompressed to allow for shorter
+          load times of the map.
+        </div>
+      </div>
+
+      <hr class="my-4" />
+
+      <div class="row justify-content-center p-4">
+        <h1>Envisioned Solution</h1>
+      </div>
+
+      <div class="row text-left">
+        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto">
+          Our solution will contain a map of one of the largest dry valleys, ice
+          free regions, of Antarctica. The plan for the interactive map is to
+          use leaflet because it takes advantage of the coordinate plane from
+          google maps and allows for dynamic viewing. We will have a query tool
+          that allows users to select different rock types and see where they
+          are on the surface of the continent. We will also be creating a
+          backend database with Amazon Web Servers because at the moment there
+          is not currently anything in place. Our database will be constrained
+          based on the 18 lines stored in the original raster images. Since our
+          website allows users to download the data from it, we are going to
+          need an altered version of the raster images. Original images are
+          proprietary information and therefore can not be distributed to the
+          public. The current solution to this problem is to take the confidence
+          intervals for each pixel and create binary data that only shows what
+          type of rock exists there instead of a percent.
+        </div>
+      </div>
+
+      <hr class="my-4" />
+
+      <div class="jumbotron-fluid text-center m-4">
+        <h1>Resources and Budget</h1>
+      </div>
+
+      <div class="row text-left">
+        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto">
+          <ol type="I">
+            <li class="p-2">
+              Amazon Web Services
+              <ol>
+                The client has offered to pay $2-300 to host the website on an
+                Amazon Web Server. This will not be needed until we have a
+                working prototype, however.
+              </ol>
+            </li>
+            <li class="p-2">
+              Monsoon
+              <ol>
+                We potentially will have to gain access to the Monsoon High
+                Performance Computing Cluster if the downsampling is such a
+                computationally heavy task that we would need to parallelize it.
+              </ol>
+            </li>
+          </ol>
+        </div>
+      </div>
+
       <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
         <a class="navbar-brand" href="index.html">Glacies Indicium</a>
         <button
@@ -91,6 +168,15 @@
             </li>
             <li class="nav-item active">
               <a class="nav-link" href="demos.html">Demos</a>
+            </li>
+            <li class="nav-item active">
+              <a
+                class="nav-link"
+                href="https://github.com/mlgarrett/antarcticapstone"
+                target="_blank"
+              >
+                GitHub Repository
+              </a>
             </li>
           </ul>
         </div>
