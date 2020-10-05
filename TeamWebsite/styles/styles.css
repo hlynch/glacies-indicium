@@ -82,8 +82,6 @@ p, ol {
   background: rgba(255, 255, 255, 0.4);
 }
 
-.dropdown:hover .dropdown-menu {display: block;}
-
 .dropdown-menu {
   background-color: #ffffff;
   background: rgba(255, 255, 255, 0.7);
@@ -235,6 +233,8 @@ p, ol {
     .jumbotron h1 {
         font-size: 4em;
     }
+
+    .dropdown:hover .dropdown-menu {display: block;}
 }
 
 /* Large devices (large desktops, 1200px and up) */
@@ -242,6 +242,8 @@ p, ol {
     .jumbotron h1 {
         font-size: 6em;
     }
+
+    .dropdown:hover .dropdown-menu {display: block;}
 }
 
 .fab,
