@@ -79,7 +79,6 @@ p, ol {
 
 .navbar {
   background-color: #ffffff;
-  background: rgba(255, 255, 255, 0.4);
 }
 
 .dropdown-menu {
@@ -198,11 +197,6 @@ p, ol {
   .fas {
     font-size: 28px !important;
   }
-
-  /*
-  .image-caption {
-    margin-left: 0px;
-  } */
 }
 
 @media only screen and (max-device-width: 1024px) {
