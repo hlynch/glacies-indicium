@@ -1,37 +1,40 @@
-@font-face { font-family: "Fredoka One";
+@font-face {
+  font-family: "Fredoka One";
   src: url("../fonts/FredokaOne-Regular.ttf") format("truetype");
 }
 
-
-@font-face { font-family: 'aleo-r';
-  src: url('aleo-regular-webfont.woff2') format('woff2'),
-       url('aleo-regular-webfont.woff') format('woff'),
-       url('../fonts/aleo-regular.otf') format('opentype');
+@font-face {
+  font-family: "aleo-r";
+  src: url("aleo-regular-webfont.woff2") format("woff2"),
+    url("aleo-regular-webfont.woff") format("woff"),
+    url("../fonts/aleo-regular.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
 
-@font-face { font-family: 'galderglynn-r';
-  src: url('../fonts/galderglynn-regular-webfont.woff2') format('woff2'),
-       url('../fonts/galderglynn-regular-webfont.woff') format('woff'),
-       url('../fonts/galderglynn-regular.ttf') format('truetype');
+@font-face {
+  font-family: "galderglynn-r";
+  src: url("../fonts/galderglynn-regular-webfont.woff2") format("woff2"),
+    url("../fonts/galderglynn-regular-webfont.woff") format("woff"),
+    url("../fonts/galderglynn-regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
 
-@font-face { font-family: 'worksans-r';
-  src: url('../fonts/worksans-regular-webfont.woff2') format('woff2'),
-       url('../fonts/worksans-regular-webfont.woff') format('woff'),
-       url('../fonts/worksans-regular.otf') format('opentype');
+@font-face {
+  font-family: "worksans-r";
+  src: url("../fonts/worksans-regular-webfont.woff2") format("woff2"),
+    url("../fonts/worksans-regular-webfont.woff") format("woff"),
+    url("../fonts/worksans-regular.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
-
 }
 
-@font-face { font-family: 'worksans-b';
-  src: url('../fonts/worksans-bold-webfont.woff2') format('woff2'),
-       url('../fonts/worksans-bold-webfont.woff') format('woff'),
-       url('../fonts/worksans-bold.otf') format('opentype');
+@font-face {
+  font-family: "worksans-b";
+  src: url("../fonts/worksans-bold-webfont.woff2") format("woff2"),
+    url("../fonts/worksans-bold-webfont.woff") format("woff"),
+    url("../fonts/worksans-bold.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
@@ -45,24 +48,30 @@ body {
   overflow-x: hidden;
   padding-bottom: 300px;
   padding-top: 76px;
-  font-family: 'worksans-r', serif;
+  font-family: "worksans-r", serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'worksans-b', serif;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "worksans-b", serif;
   padding: 40px;
 }
 
 h1 {
-    font-size: 42px;
+  font-size: 42px;
 }
 
 h2 {
   font-size: 42px;
 }
 
-p, ol {
-  font-family: 'aleo-r';
+p,
+ol {
+  font-family: "aleo-r";
   text-align: justify;
   margin: 0 auto;
   max-width: 60%;
@@ -100,7 +109,7 @@ p, ol {
 }
 
 .scrollbtn:hover {
-  transform:scale(1.25, 1.25);
+  transform: scale(1.25, 1.25);
 }
 
 .profile-image {
@@ -138,14 +147,14 @@ p, ol {
 }
 
 .display-4 {
-  font-family: 'galderglynn-r', sans-serif;
+  font-family: "galderglynn-r", sans-serif;
   font-weight: 200;
   padding-top: 100px;
   margin: 0px;
 }
 
 .my-4 {
-  width:60%;
+  width: 60%;
   margin: auto;
   color: black;
 }
@@ -217,27 +226,31 @@ p, ol {
 }
 
 @media (min-width: 768px) {
-    .jumbotron h1 {
-        font-size: 3em;
-    }
+  .jumbotron h1 {
+    font-size: 3em;
+  }
 }
 
 /* Medium devices (desktops, 992px and up) */
 @media (min-width: 992px) {
-    .jumbotron h1 {
-        font-size: 4em;
-    }
+  .jumbotron h1 {
+    font-size: 4em;
+  }
 
-    .dropdown:hover .dropdown-menu {display: block;}
+  .dropdown:hover .dropdown-menu {
+    display: block;
+  }
 }
 
 /* Large devices (large desktops, 1200px and up) */
 @media (min-width: 1200px) {
-    .jumbotron h1 {
-        font-size: 6em;
-    }
+  .jumbotron h1 {
+    font-size: 6em;
+  }
 
-    .dropdown:hover .dropdown-menu {display: block;}
+  .dropdown:hover .dropdown-menu {
+    display: block;
+  }
 }
 
 .fab,
@@ -249,4 +262,8 @@ p, ol {
 .fab:hover,
 .fas:hover {
   color: #0e76a8;
+}
+
+.list-group a:nth-child(odd) {
+  background-color: #f9f9f9;
 }
