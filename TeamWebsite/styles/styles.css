@@ -1,0 +1,269 @@
+@font-face {
+  font-family: "Fredoka One";
+  src: url("../fonts/FredokaOne-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "aleo-r";
+  src: url("aleo-regular-webfont.woff2") format("woff2"),
+    url("aleo-regular-webfont.woff") format("woff"),
+    url("../fonts/aleo-regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "galderglynn-r";
+  src: url("../fonts/galderglynn-regular-webfont.woff2") format("woff2"),
+    url("../fonts/galderglynn-regular-webfont.woff") format("woff"),
+    url("../fonts/galderglynn-regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "worksans-r";
+  src: url("../fonts/worksans-regular-webfont.woff2") format("woff2"),
+    url("../fonts/worksans-regular-webfont.woff") format("woff"),
+    url("../fonts/worksans-regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "worksans-b";
+  src: url("../fonts/worksans-bold-webfont.woff2") format("woff2"),
+    url("../fonts/worksans-bold-webfont.woff") format("woff"),
+    url("../fonts/worksans-bold.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  padding-bottom: 300px;
+  padding-top: 76px;
+  font-family: "worksans-r", serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "worksans-b", serif;
+  padding: 40px;
+}
+
+h1 {
+  font-size: 42px;
+}
+
+h2 {
+  font-size: 42px;
+}
+
+p,
+ol {
+  font-family: "aleo-r";
+  text-align: justify;
+  margin: 0 auto;
+  max-width: 60%;
+  position: relative;
+  bottom: 0;
+  padding-top: 30px;
+  padding-bottom: 20px;
+  font-size: 18px;
+}
+
+.li-p {
+  max-width: 100%;
+}
+
+.navbar {
+  background-color: #ffffff;
+}
+
+.dropdown-menu {
+  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.row {
+  max-width: 100%;
+}
+
+.btn {
+  color: white !important;
+  width: 100% !important;
+}
+
+.scrollbtn {
+  position: relative;
+}
+
+.scrollbtn:hover {
+  transform: scale(1.25, 1.25);
+}
+
+.profile-image {
+  border-radius: 50%;
+  display: inline-block;
+  height: 160px;
+  width: 160px;
+}
+
+.image-caption {
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+}
+
+.padding-top-md {
+  padding-top: 2em;
+}
+
+.welcome-message {
+  font-family: "Fredoka One", serif;
+  text-align: left !important;
+  margin-left: 5% !important;
+  margin-bottom: -45px;
+  font-size: 48px;
+}
+
+.jumbotron-fluid {
+  background-image: url("../images/jumbo-bg.jpg");
+  background-size: cover;
+  height: 100%;
+  padding-top: 50px;
+  padding-bottom: 75px;
+  text-align: center;
+}
+
+.display-4 {
+  font-family: "galderglynn-r", sans-serif;
+  font-weight: 200;
+  padding-top: 100px;
+  margin: 0px;
+}
+
+.my-4 {
+  width: 60%;
+  margin: auto;
+  color: black;
+}
+
+#jumbo-p {
+  background: white;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 30px;
+  margin: 0px;
+  margin-bottom: 40px;
+}
+
+.lead {
+  text-align: center;
+  margin: 0 auto;
+  max-width: 80%;
+  position: relative;
+  bottom: 0;
+}
+
+.carousel-item {
+  max-height: 350px;
+}
+
+#carousel-p {
+  max-width: 100%;
+}
+
+#carousel-p p {
+  text-align: justify;
+  margin: 0;
+  position: relative;
+  bottom: 0;
+}
+
+.footer {
+  margin-top: auto;
+}
+@media only screen and (max-width: 768px) {
+  .display-4 {
+    font-size: 1.5rem;
+  }
+
+  .welcome-message {
+    font-size: 40px;
+  }
+
+  .fab,
+  .fas {
+    font-size: 28px !important;
+  }
+}
+
+@media only screen and (max-device-width: 1024px) {
+  .logo {
+    margin-top: 40px;
+  }
+
+  .col-md-2,
+  .col-sm-4 {
+    max-width: 50%;
+  }
+}
+
+@media only screen and (min-device-width: 1296px) {
+  .logo {
+    margin-top: 40px;
+  }
+}
+
+@media (min-width: 768px) {
+  .jumbotron h1 {
+    font-size: 3em;
+  }
+}
+
+/* Medium devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .jumbotron h1 {
+    font-size: 4em;
+  }
+
+  .dropdown:hover .dropdown-menu {
+    display: block;
+  }
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .jumbotron h1 {
+    font-size: 6em;
+  }
+
+  .dropdown:hover .dropdown-menu {
+    display: block;
+  }
+}
+
+.fab,
+.fas {
+  color: black;
+  font-size: 24px;
+}
+
+.fab:hover,
+.fas:hover {
+  color: #0e76a8;
+}
+
+.list-group a:nth-child(odd) {
+  background-color: #f9f9f9;
+}
