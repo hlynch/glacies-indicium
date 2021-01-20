@@ -1,10 +1,11 @@
-[![Build Status](https://travis-ci.com/DHI-GRAS/terracotta.svg?token=27HwdYKjJ1yP6smyEa25&branch=master)](https://travis-ci.org/DHI-GRAS/terracotta)
-[![Documentation Status](https://readthedocs.org/projects/terracotta-python/badge/?version=latest)](https://terracotta-python.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/DHI-GRAS/terracotta/branch/master/graph/badge.svg?token=u16QBwwvvn)](https://codecov.io/gh/DHI-GRAS/terracotta)
-[![GitHub release](https://img.shields.io/github/release-pre/dhi-gras/terracotta.svg)](https://github.com/DHI-GRAS/terracotta/releases)
-[![PyPI release](https://img.shields.io/pypi/v/terracotta.svg)](https://pypi.org/project/terracotta)
-[![License](https://img.shields.io/github/license/dhi-gras/terracotta.svg)](https://github.com/DHI-GRAS/terracotta/blob/master/LICENSE)
-[![Python versions](https://img.shields.io/pypi/pyversions/terracotta.svg)](https://pypi.org/project/terracotta)
+# GLACIES INDICIUM
+Welcome to the code repository for Team Glacies Indicium at NAU.
+
+You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021/GlaciesIndicium-F20/) to learn more about our project.
+
+This project is based on the open-source project Terracotta, a Python-based GeoTIFF data exploration tool. The original Terracotta readme information can be found below.
+
+---
 
 [![Logo](docs/_figures/logo-banner.svg)](#)
 
