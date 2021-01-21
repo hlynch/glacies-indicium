@@ -3,6 +3,22 @@ Welcome to the code repository for Team Glacies Indicium at NAU.
 
 You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021/GlaciesIndicium-F20/) to learn more about our project.
 
+# HOW TO GET SET UP
+1. Install Anaconda/Miniconda and the git tool on your machine.
+
+2. Use a command prompt to navigate to wherever you want to keep the repository on your hard disk.
+
+3. Clone this repo with the command `git clone https://github.com/mlgarrett/glacies-indicium.git`
+
+- On Windows: Use the Start Menu to open the Miniconda command prompt/terminal. Navigate to the glacies-indicium repository directory.
+
+- On Linux: Use the command prompt to navigate to the glacies-indicium repository directory.
+
+5. Run the command `conda env create -f environment.yml`. This will install and set up the Terracotta tool in an anaconda virtual environment.
+
+6. Activate the virtual environment with `conda activate terracotta`. You should now be able to run terracotta commands, like `terracotta --help``.
+
+# ATTRIBUTION
 This project is based on the open-source project Terracotta, a Python-based GeoTIFF data exploration tool. The original Terracotta readme information can be found below.
 
 ---
