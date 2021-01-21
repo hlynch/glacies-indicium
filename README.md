@@ -14,6 +14,8 @@ You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021
 
 3. Clone this repo with the command `git clone https://github.com/mlgarrett/glacies-indicium.git`
 
+4. Change into the repo directory
+
 5. Run the command `conda env create -f environment.yml`. This will install and set up the Terracotta tool in an Anaconda virtual environment.
 
 6. Activate the virtual environment with `conda activate terracotta`. You should now be able to run terracotta commands, like `terracotta --help`.
