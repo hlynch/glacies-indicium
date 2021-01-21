@@ -16,7 +16,7 @@ You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021
 
 5. Run the command `conda env create -f environment.yml`. This will install and set up the Terracotta tool in an anaconda virtual environment.
 
-6. Activate the virtual environment with `conda activate terracotta`. You should now be able to run terracotta commands, like `terracotta --help``.
+6. Activate the virtual environment with `conda activate terracotta`. You should now be able to run terracotta commands, like `terracotta --help`.
 
 # ATTRIBUTION
 This project is based on the open-source project Terracotta, a Python-based GeoTIFF data exploration tool. The original Terracotta readme information can be found below.
