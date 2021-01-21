@@ -4,15 +4,15 @@ Welcome to the code repository for Team Glacies Indicium at NAU.
 You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021/GlaciesIndicium-F20/) to learn more about our project.
 
 # HOW TO GET SET UP
-1. Install Anaconda/Miniconda and the git tool on your machine.
+1. Install Anaconda and the git tool on your machine.
 
-2. Use a command prompt to navigate to wherever you want to keep the repository on your hard disk.
+- On Windows: Use the Start Menu to find and open the Anaconda/Miniconda command prompt/terminal.
+
+- On Linux: Use the normal command prompt (start up a fresh command prompt after installing Anaconda).
+
+2. Navigate to wherever you want to keep our repository on your hard disk.
 
 3. Clone this repo with the command `git clone https://github.com/mlgarrett/glacies-indicium.git`
-
-- On Windows: Use the Start Menu to open the Miniconda command prompt/terminal. Navigate to the glacies-indicium repository directory.
-
-- On Linux: Use the command prompt to navigate to the glacies-indicium repository directory.
 
 5. Run the command `conda env create -f environment.yml`. This will install and set up the Terracotta tool in an anaconda virtual environment.
 
