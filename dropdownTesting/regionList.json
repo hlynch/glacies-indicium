@@ -1,0 +1,17 @@
+[
+    
+    {
+        "name": "main",
+        "subregions": [
+           { "name": "subRegion1"},
+           { "name": "subRegion2"}
+        ]
+    },
+    {
+        "name": "main2",
+        "subregions": [
+            { "name": "subRegion3"},
+            { "name": "subRegion4"}
+         ]
+    }
+]
