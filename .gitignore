@@ -123,3 +123,7 @@ ENV/
 
 # VS Code
 .vscode/
+
+# TIFF files
+*.tif 
+*.TIFF
