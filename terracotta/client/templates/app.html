@@ -37,13 +37,16 @@
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script src="{{ url_for('static', filename='proj4.js')}}"></script>
     <script src="{{ url_for('static', filename='proj4leaflet.js')}}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.0.0-rc.5/dist/html2canvas.min.js"></script>
+    <script src="{{ url_for('static', filename='html2canvas.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='fileSaver.js')}}"></script>
+    <script src="{{ url_for('static', filename='canvas-toBlob.js')}}"></script>
   </head>
   <body>
     <div id="controls">
       <img
-        src="{{ url_for('static', filename='images/header.svg') }}"
+        src="{{ url_for('static', filename='images/header_large.png') }}"
         class="header"
+        id="header-one"
       />
 
       <div class="el-wrapper border-none">
@@ -79,7 +82,7 @@
         <ul id="key-list"></ul>
       </div>
 
-      <div class="el-wrapper">
+      <div class="el-wrapper border-none">
         <div id="search-fields" style="display: none"></div>
         <div id="thumbnail-holder"></div>
         <table class="scrolling-list" id="search-results"></table>

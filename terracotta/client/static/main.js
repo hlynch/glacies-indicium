@@ -259,6 +259,19 @@ function initUI(remote_host, keys) {
     keyList.appendChild(label);
   }
 
+  const checkboxes = document.querySelectorAll('input[type=checkbox]');
+  checkboxes.forEach(function (checkbox) {
+    checkbox.addEventListener('change', function () {
+      enabledSettings = Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
+        .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
+        .map((i) => i.value); // Use Array.map to extract only the checkbox values from the array of objects.
+
+      enabledSettings.length > 0
+        ? console.table(enabledSettings)
+        : console.log('No items selected');
+    });
+  });
+
   // initialize table header for search results
   let datasetTable = document.getElementById('search-results');
   datasetTable.innerHTML = '';
@@ -897,22 +910,13 @@ function initializeApp(hostname) {
       let outputDiv = document.getElementById('widget');
       STATE.baseLayer = blueMarble;
 
+      const map = document.getElementById('map');
+
       $('#exportButton').click(function (element) {
-        html2canvas(outputDiv).then(function (canvas) {
-          /* theCanvas = canvas;
-
+        html2canvas(document.body).then(function (canvas) {
           canvas.toBlob(function (blob) {
-            saveAs(blob, 'Dashboard.png');
-          }); */
-
-          var image = canvas
-            .toDataURL('image/png')
-            .replace('image/png', 'image/octet-stream');
-
-          console.log('heree2');
-          const dataURL = canvas.toDataURL('image/jpeg');
-          element.target.href = dataURL;
-          // window.location.href = image;
+            saveAs(blob, 'pretty image.png');
+          });
         });
       });
     });
