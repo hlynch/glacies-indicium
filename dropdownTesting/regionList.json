@@ -1,17 +1,49 @@
-[
-    
+{
+  "name": "Northern Victoria Land",
+  "subregions": [
     {
-        "name": "main",
-        "subregions": [
-           { "name": "subRegion1"},
-           { "name": "subRegion2"}
-        ]
+      "name": "Asgard Range",
+      "subregions": [
+        {
+          "name": "Mt. Newall"
+        },
+        {
+          "name": "Round Mountain"
+        }
+      ]
     },
     {
-        "name": "main2",
-        "subregions": [
-            { "name": "subRegion3"},
-            { "name": "subRegion4"}
-         ]
+      "name": "Ferrar Glacier",
+      "subregions": [
+        {
+          "name": "Kukri Hills"
+        },
+        {
+          "name": "Briggs Hills"
+        },
+        {
+          "name": "Thomas Heights"
+        }
+      ]
+    },
+    {
+      "name": "Kukri Hills",
+      "subregions": [
+        {
+          "name": "Mt Coates"
+        }
+      ]
+    },
+    {
+      "name": "Quartermain Mountain",
+      "subregions": [
+        {
+          "name": "Beacon Valley"
+        },
+        {
+          "name": "Pivot Peak"
+        }
+      ]
     }
-]
+  ]
+}
