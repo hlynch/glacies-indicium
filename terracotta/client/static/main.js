@@ -277,6 +277,8 @@ function initUI(remote_host, keys) {
   datasetTable.innerHTML = '';
   let tableHeader = document.createElement('th');
 
+  console.table(keys);
+
   for (let i = 0; i < keys.length; i++) {
     const headerEntry = document.createElement('td');
     headerEntry.innerHTML = keys[i].key;

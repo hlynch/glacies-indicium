@@ -1,12 +1,14 @@
-/*const fs = require('fs');
+const fs = require('fs');
 
 fs.readFile('./regionList.json', 'utf8', (err, jsonString) => {
-  err ? console.log('File read failed:', err) : parseData(jsonString);
+  err
+    ? console.log('File read failed:', err)
+    : parseData(JSON.parse(jsonString));
 });
 
-function parseData(jsonData) {
-  const regionList = JSON.parse(jsonData);
-  for (var index = 0; index < regionList.length; index++) {
+function parseData(regionList) {
+  console.log(regionList);
+  for (var key in regionList) {
     console.log(regionList[index].name);
     for (
       var innerIndex = 0;
@@ -15,8 +17,8 @@ function parseData(jsonData) {
     )
       console.log('  ' + regionList[index].subregions[innerIndex].name);
   }
-}*/
-
+}
+/*
 class UserInterface {
   constructor(dropdownContainerId, bandContainerId) {
     this.dropdownContainerId = dropdownContainerId;
@@ -96,3 +98,4 @@ userInterface.generateRegionList('http://localhost:8000/regionList.json');
 // const regionList = new RegionsList('http://localhost:8000/regionList.json');
 
 // regionList.openJsonFile();
+*/
