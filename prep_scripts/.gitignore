@@ -1,0 +1,3 @@
+# ignore geotiffs and header files
+*.tif
+*.hdr
