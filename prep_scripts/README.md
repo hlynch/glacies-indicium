@@ -2,7 +2,7 @@
 The 'raster-prep.py' script can be invoked on a directory of multiband GeoTIFFs
 with the command:
 
-`python3 raster-prep.py -d /path/to/some/geotiffs - o /path/to/an/output/folder`
+`python3 raster-prep.py -d /path/to/some/geotiffs -o /path/to/an/output/folder`
 
 The output folder must already exist.
 
@@ -21,8 +21,8 @@ will output a set of processed, keyed GeoTIFFs into the `output/` folder.
 
 # State of the Script
 The `raster-prep.py` script takes two arguments: a directory containing
-arbitrarily-many multiband GeoTIFFs, and an output folder. The script
-currently:
+arbitrarily-many multiband GeoTIFFs, and an output folder.
+
 ## Things the Script Currently Does
 - Iterates over each file in the provided directory
 - Parses the file paths and file names in an architecture-friendly manner
