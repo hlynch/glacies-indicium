@@ -515,3 +515,15 @@ label {
 .border-none {
   border: none !important;
 }
+
+.margin-left-none {
+  margin-left: -10% !important;
+}
+
+li:hover {
+  background-color: #f2f2f2;
+}
+
+li {
+  padding: 5px;
+}

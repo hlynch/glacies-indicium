@@ -62,12 +62,14 @@ const COLORMAPS = [
 
 const STATE = {
   keys: [],
+  ds_keys: [],
   errors: errorProxy([]),
   remote_host: '',
   current_dataset_page: 0,
   dataset_metadata: {},
   colormap_values: {},
   current_colormap: '',
+  current_singleband_stretch: [0, 1],
   map: undefined,
   baseLayer: undefined,
   overlayLayer: undefined,
@@ -271,29 +273,6 @@ function initUI(remote_host, keys) {
         : console.log('No items selected');
     });
   });
-
-  // initialize table header for search results
-  let datasetTable = document.getElementById('search-results');
-  datasetTable.innerHTML = '';
-  let tableHeader = document.createElement('th');
-
-  console.table(keys);
-
-  for (let i = 0; i < keys.length; i++) {
-    const headerEntry = document.createElement('td');
-    headerEntry.innerHTML = keys[i].key;
-    tableHeader.appendChild(headerEntry);
-    datasetTable.appendChild(tableHeader);
-  }
-
-  // create sliders
-  let sliderDummyOptions = {
-    start: [0.0, 1.0],
-    range: { min: 0, max: 1 },
-    connect: true,
-    behaviour: 'drag',
-  };
-
   resetLayerState();
   removeSpinner();
 }
@@ -402,29 +381,21 @@ function updateSearchResults(
   keys = STATE.keys
 ) {
   // initialize table header for search results
-  const datasetTable = document.getElementById('search-results');
-  datasetTable.innerHTML = '';
-  const tableHeader = document.createElement('tr');
-  for (let i = 0; i < keys.length; i++) {
-    const headerEntry = document.createElement('th');
-    headerEntry.innerHTML = keys[i].key;
-    tableHeader.appendChild(headerEntry);
-  }
-  datasetTable.appendChild(tableHeader);
+  const regionList = document.getElementById('search-results');
+  regionList.innerHTML = '';
 
   // get key constraints from UI
   let key_constraints = [];
 
-  // Request datasets
-  const datasetURL = assembleDatasetURL(
-    remote_host,
-    key_constraints,
-    DATASETS_PER_PAGE,
-    STATE.current_dataset_page
-  );
-  return httpGet(datasetURL).then((res) => {
-    updateDatasetList(remote_host, res.datasets, keys);
-  });
+  const checkboxes = document.querySelectorAll('#key-list input');
+  for (let index = 0; index < checkboxes.length; index++) {
+    const ds_field = checkboxes[index];
+    if (ds_field.value !== '') {
+      key_constraints.push({ key: ds_field.name, value: ds_field.value });
+    }
+  }
+
+  updateDatasetList(remote_host);
 }
 
 /**
@@ -434,7 +405,11 @@ function updateSearchResults(
  * @param {Array<Terracotta.IDataset>} datasets
  * @param {Array<Terracotta.IKey>} keys
  */
-function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
+function updateDatasetList(
+  remote_host = STATE.remote_host,
+  datasets = 10,
+  keys
+) {
   let datasetTable = document.getElementById('search-results');
 
   // disable next page if there are no more datasets
@@ -448,58 +423,15 @@ function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
     next_page_button.disabled = false;
   }
 
-  // update table rows
-  if (datasets.length === 0) {
-    let resultRow = document.createElement('tr');
-    resultRow.innerHTML = `<td colspan=${keys.length}>No datasets found</td>`;
-    datasetTable.appendChild(resultRow);
-    return;
-  }
+  buildRegionTree(json, datasetTable);
+  removeListMargin();
+}
 
-  for (let i = 0; i < datasets.length; i++) {
-    let currentDataset = datasets[i];
-    let resultRow = document.createElement('tr');
-    let ds_keys = [];
-    for (let j = 0; j < keys.length; j++) {
-      let resultEntry = document.createElement('td');
-      ds_keys[j] = currentDataset[keys[j].key];
-      resultEntry.innerHTML = ds_keys[j];
-      resultRow.appendChild(resultEntry);
-    }
-    resultRow.id = `dataset-${serializeKeys(ds_keys)}`;
-    if (
-      STATE.activeSinglebandLayer &&
-      compareArray(STATE.activeSinglebandLayer.keys, ds_keys)
-    ) {
-      resultRow.classList.add('active');
-    }
-    resultRow.classList.add('clickable');
-    resultRow.addEventListener(
-      'click',
-      toggleSinglebandMapLayer.bind(null, ds_keys)
-    );
-    resultRow.addEventListener(
-      'mouseenter',
-      toggleDatasetMouseover.bind(null, resultRow)
-    );
-    resultRow.addEventListener(
-      'mouseleave',
-      toggleDatasetMouseover.bind(null, null)
-    );
-
-    // show thumbnails
-    let detailsRow = document.createElement('tr');
-    let thumbnailUrl = assembleSinglebandURL(remote_host, ds_keys, null, true);
-    detailsRow.innerHTML = `<td colspan=${keys.length}><img src=${thumbnailUrl} class='thumbnail-image'></td>`;
-    resultRow.appendChild(detailsRow);
-
-    datasetTable.appendChild(resultRow);
-
-    // retrieve metadata
-    httpGet(assembleMetadataURL(remote_host, ds_keys)).then((metadata) =>
-      storeMetadata(metadata)
-    );
-  }
+/**
+ * Finds the first list element and removes margin to reduce whitespace.
+ */
+function removeListMargin() {
+  $('ul:eq(1)').addClass('margin-left-none');
 }
 
 /**
@@ -534,45 +466,15 @@ function updatePageControls() {
 }
 
 /**
- * Updates thumbnail preview
- * @param {HTMLImageElement} img
- * @param {boolean} show
- */
-function showCurrentThumnbnail(img, show) {
-  const thumbnail = document.getElementById('thumbnail-holder');
-  if (show) {
-    var backgroundProperty = `url(${img.src})`;
-    thumbnail.style.backgroundImage = backgroundProperty;
-  } else {
-    thumbnail.style.backgroundImage = 'none';
-  }
-}
-
-/**
  * Adds a footprint overlay to map
  * @param {HTMLElement} datasetTable
  */
-function toggleDatasetMouseover(datasetTable) {
+function toggleDatasetMouseover(element) {
   if (STATE.overlayLayer != null) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
 
-  if (datasetTable == null) {
-    showCurrentThumnbnail(null, false);
-    return;
-  }
-  showCurrentThumnbnail(datasetTable.querySelector('img'), true);
-  /**
-   * @type {NodeListOf<HTMLTableCellElement>}
-   */
-  const tdElements = datasetTable.querySelectorAll('td');
-  const keys = [];
-  for (let i = 0; i < tdElements.length; i++) {
-    if (tdElements[i].parentElement.classList.contains('clickable'))
-      keys.push(tdElements[i].innerHTML);
-  }
-
-  const layer_id = serializeKeys(keys);
+  const layer_id = serializeKeys([element.target.id]);
   const metadata = STATE.dataset_metadata[layer_id];
 
   if (!metadata) return;
@@ -581,9 +483,17 @@ function toggleDatasetMouseover(datasetTable) {
     style: {
       color: '#0B4566',
       weight: 5,
-      opacity: 0.65,
+      opacity: 1,
     },
   }).addTo(STATE.map);
+}
+
+/**
+ * Removes overlay from map after hover
+ * @param {HTMLElement} datasetTable
+ */
+function toggleDatasetMouseleave() {
+  STATE.map.removeLayer(STATE.overlayLayer);
 }
 
 /**
@@ -604,9 +514,6 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
   if (!ds_keys || compareArray(currentKeys, ds_keys)) {
     return;
   }
-
-  const layer_id = serializeKeys(ds_keys);
-  const metadata = STATE.dataset_metadata[layer_id];
 
   updateSinglebandLayer(ds_keys, resetView);
 }
@@ -637,18 +544,19 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
     ds_keys,
     layer_options
   );
-  console.log(layer_url);
+
   STATE.activeSinglebandLayer = {
     keys: ds_keys,
-    layer: L.tileLayer(layer_url, { transparent: true }).addTo(STATE.map),
+    layer: L.tileLayer(layer_url, {
+      zIndex: 2,
+      opacity: 1,
+    }).addTo(STATE.map),
   };
 
-  const dataset_layer = document.getElementById(`dataset-${layer_id}`);
+  $('.active').removeClass('active');
+  const dataset_layer = document.getElementById(`${layer_id}`);
 
-  if (dataset_layer) {
-    // Depending on search, the dataset layer might not be present in the DOM.
-    dataset_layer.classList.add('active');
-  }
+  dataset_layer.classList.add('active');
 
   if (resetView && metadata) {
     const screen = STATE.map.getBounds();
@@ -861,26 +769,27 @@ function initializeApp(hostname) {
 
   STATE.remote_host = hostname;
 
-  const EPSG3031 = new L.Proj.CRS(
-    'EPSG:3031',
-    '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs',
-    {
-      origin: [-4194304, 4194304],
-      resolutions: [8192.0, 4096.0, 2048.0, 1024.0, 512.0, 256.0],
-      bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
-    }
-  );
-
-  const southWest = L.latLng(-38.94137277935882, -135);
-  const northEast = L.latLng(-38.94137277935882, 45);
-  const bounds = L.latLngBounds(southWest, northEast);
-
   getColormapValues(hostname)
     .then(() => getKeys(hostname))
     .then((keys) => {
       STATE.keys = keys;
       initUI(hostname, keys);
       updateSearchResults();
+
+      /* This is commented out as new tile layers will not display over this one. 
+        TODO: Make 3031 projection work with Leaflet
+        const EPSG3031 = new L.Proj.CRS(
+        'EPSG:3031',
+        '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs',
+        {
+          origin: [-4194304, 4194304],
+          resolutions: [8192.0, 4096.0, 2048.0, 1024.0, 512.0, 256.0],
+          bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
+        }
+      );
+
+      const southWest = L.latLng(-38.94137277935882, -135);
+      const northEast = L.latLng(-38.94137277935882, 45);
 
       const nasaAttrib =
         "Data Source &copy; <a href='https://www.comnap.aq/SitePages/Home.aspx' target='_blank'>" +
@@ -891,29 +800,35 @@ function initializeApp(hostname) {
         '/wmts/epsg3031/best/' +
         '{layer}/default/{tileMatrixSet}/{z}/{y}/{x}.{format}';
 
-      // config attributes for blue marble layer
       const blueMarble = new L.tileLayer(nasaUrl, {
         attribution: nasaAttrib,
         attributionControl: false,
         tileSize: 512,
         layer: 'BlueMarble_ShadedRelief_Bathymetry',
         tileMatrixSet: '500m',
+        transparent: true,
         format: 'jpg',
+        zIndex: 1,
       });
-
       STATE.map = new L.Map('map', {
         crs: EPSG3031,
         minZoom: 0.48,
-        maxZoom: 4, // because nasa data has only five zoom levels
+        maxZoom: 4,
+        layers: [blueMarble],
       });
 
-      STATE.map.setView(new L.LatLng(-90, 0), 0);
-      STATE.map.addLayer(blueMarble);
-      let outputDiv = document.getElementById('widget');
-      STATE.baseLayer = blueMarble;
+      STATE.map.setView(new L.LatLng(-90, 0), 0); */
+      let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      let osmAttrib =
+        'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+      let osmBase = L.tileLayer(osmUrl, { attribution: osmAttrib });
+      STATE.map = L.map('map', {
+        center: [0, 0],
+        zoom: 2,
+        layers: [osmBase],
+      });
 
-      const map = document.getElementById('map');
-
+      // Export map to a png image
       $('#exportButton').click(function (element) {
         html2canvas(document.body).then(function (canvas) {
           canvas.toBlob(function (blob) {
@@ -924,3 +839,202 @@ function initializeApp(hostname) {
     });
   addResizeListeners();
 }
+
+/**
+ * Parses json list of regions and creates nested menu
+ * @param {JSON} regions
+ * @param {HTML Element} container
+ */
+function buildRegionTree(regions, container) {
+  regions.forEach((region) => {
+    let listRoot = document.createElement('ul');
+    let newListElement = createListElement(region);
+    listRoot.appendChild(newListElement);
+
+    if (region.subregions !== undefined)
+      buildRegionTree(region.subregions, listRoot);
+    if (newListElement.id < DATASETS_PER_PAGE) {
+      httpGet(
+        assembleMetadataURL(STATE.remote_host, [newListElement.id])
+      ).then((metadata) => storeMetadata(metadata));
+    }
+    container.appendChild(listRoot);
+  });
+}
+
+/**
+ * Creates new list element with event listeners for hover and click
+ * @param {JSON} content
+ */
+function createListElement(content) {
+  const listElement = document.createElement('li');
+  listElement.innerHTML = content.name;
+  listElement.id = content.id;
+  listElement.classList.add('clickable');
+
+  listElement.addEventListener(
+    'click',
+    toggleSinglebandMapLayer.bind(null, [content.id])
+  );
+  listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
+  listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
+
+  return listElement;
+}
+
+/**
+ * Current hardcoded list of regions/ids
+ * TODO: Dynamically create this list and store as JSON file
+ */
+const json = [
+  {
+    name: 'Northern Victoria Land',
+    id: 1,
+    subregions: [
+      {
+        name: 'Asgard Range',
+        id: 2,
+        subregions: [
+          {
+            name: 'Mt. Newall',
+            id: 3,
+          },
+          {
+            name: 'Round Mountain',
+            id: 4,
+          },
+        ],
+      },
+      {
+        name: 'Ferrar Glacier',
+        fileName: 'WV02_2210_GeoTIFF_stack_1.tif',
+        id: 5,
+        subregions: [
+          {
+            name: 'Kukri Hills',
+            id: 6,
+          },
+          {
+            name: 'Briggs Hills',
+            id: 7,
+          },
+          {
+            name: 'Thomas Heights',
+            id: 8,
+          },
+        ],
+      },
+      {
+        name: 'Kukri Hills',
+        id: 9,
+        subregions: [
+          {
+            name: 'Mt Coates',
+            id: 10,
+          },
+        ],
+      },
+      {
+        name: 'Quartermain Mountain',
+        id: 11,
+        subregions: [
+          {
+            name: 'Beacon Valley',
+            id: 12,
+          },
+          {
+            name: 'Pivot Peak',
+            id: 13,
+          },
+        ],
+      },
+      {
+        name: 'Royal Society Range',
+        id: 14,
+        subregions: [
+          {
+            name: 'Garwood Valley',
+            id: 15,
+          },
+          {
+            name: 'Miers Valley',
+            id: 16,
+          },
+          {
+            name: 'Heald Island',
+            id: 17,
+          },
+          {
+            name: 'Blue Glacier',
+            id: 18,
+          },
+          {
+            name: 'Mt. Rucker',
+            id: 19,
+          },
+          {
+            name: 'Trough Lake',
+            id: 20,
+          },
+          {
+            name: 'Mt. Huggins',
+            id: 21,
+          },
+          {
+            name: 'The Spire',
+            id: 22,
+          },
+          {
+            name: 'Table Mountain',
+            id: 23,
+          },
+        ],
+      },
+      {
+        name: 'Taylor Glacier',
+        id: 24,
+        subregions: [{ name: 'Northwest Mountain', id: 25 }],
+      },
+      {
+        name: 'Taylor Valley',
+        id: 26,
+        subregions: [
+          {
+            name: 'Northwest Mountain',
+            id: 27,
+          },
+          {
+            name: 'New Harbor',
+            id: 28,
+          },
+          {
+            name: 'Fryxell Basin',
+            id: 29,
+          },
+          {
+            name: 'Kukri Hills',
+            id: 30,
+          },
+          {
+            name: 'Hoare Basin',
+            id: 31,
+          },
+        ],
+      },
+      {
+        name: 'Willett Range',
+        id: 32,
+        subregions: [
+          { name: 'Head Mountains', id: 33 },
+          { name: 'Apocolypse Peaks', id: 34 },
+          { name: 'Shapeles Mountain', id: 35 },
+        ],
+      },
+      {
+        name: 'Wright Valley',
+        id: 36,
+        subregions: [{ name: 'Mt. Fleming', id: 37 }],
+      },
+    ],
+  },
+];

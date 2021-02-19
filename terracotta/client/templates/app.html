@@ -59,10 +59,7 @@
           <span class="info-toggle no-select">i</span>
         </div>
         <div id="details__content">
-          <p class="clear" id="info-text">
-            This applet lets you explore the data on any running Terracotta
-            server. Just search for a dataset to get started!
-          </p>
+          <p class="clear" id="info-text">Glacies Indicium capstone project!</p>
         </div>
         <p id="details__host--title">
           <b>host: </b> <span id="details__host--url">{{ hostname }}</span>
@@ -70,9 +67,7 @@
       </div>
 
       <div class="el-wrapper">
-        <a class="btn btn-primary" id="exportButton" download="map.jpg"
-          >Export Map</a
-        >
+        <a class="btn btn-primary" id="exportButton">Export Map</a>
       </div>
 
       <div id="widget"></div>
@@ -82,11 +77,11 @@
         <ul id="key-list"></ul>
       </div>
 
-      <div class="el-wrapper border-none">
+      <div class="el-wrapper border-none" id="regionList">
         <h2>Region Keys</h2>
         <div id="search-fields" style="display: none"></div>
         <div id="thumbnail-holder"></div>
-        <table class="scrolling-list" id="search-results"></table>
+        <div class="scrolling-list" id="search-results"></div>
         <div id="search-result-controls">
           <button id="prev-page" onclick="incrementResultsPage(-1);" disabled>
             &lt;
@@ -123,12 +118,6 @@
 
     <script type="text/javascript">
       window.onload = initializeApp.bind(null, '{{ hostname }}');
-    </script>
-
-    <script>
-      function alertButton() {
-        alert('Export maps succcessful!');
-      }
     </script>
   </body>
 </html>
