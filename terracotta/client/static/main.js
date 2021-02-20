@@ -548,7 +548,7 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
   STATE.activeSinglebandLayer = {
     keys: ds_keys,
     layer: L.tileLayer(layer_url, {
-      zIndex: 2,
+      zIndex: 1,
       opacity: 1,
     }).addTo(STATE.map),
   };
@@ -777,8 +777,8 @@ function initializeApp(hostname) {
       updateSearchResults();
 
       /* This is commented out as new tile layers will not display over this one. 
-        TODO: Make 3031 projection work with Leaflet
-        const EPSG3031 = new L.Proj.CRS(
+        TODO: Make 3031 projection work with Leaflet 
+      const EPSG3031 = new L.Proj.CRS(
         'EPSG:3031',
         '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs',
         {
@@ -802,11 +802,9 @@ function initializeApp(hostname) {
 
       const blueMarble = new L.tileLayer(nasaUrl, {
         attribution: nasaAttrib,
-        attributionControl: false,
         tileSize: 512,
         layer: 'BlueMarble_ShadedRelief_Bathymetry',
         tileMatrixSet: '500m',
-        transparent: true,
         format: 'jpg',
         zIndex: 1,
       });
@@ -817,7 +815,10 @@ function initializeApp(hostname) {
         layers: [blueMarble],
       });
 
-      STATE.map.setView(new L.LatLng(-90, 0), 0); */
+      STATE.map.setView(
+        new L.LatLng(-90, 0),
+        0
+      ); */
       let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
       let osmAttrib =
         'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
@@ -838,6 +839,7 @@ function initializeApp(hostname) {
       });
     });
   addResizeListeners();
+  getTheme();
 }
 
 /**
@@ -1033,8 +1035,40 @@ const json = [
       {
         name: 'Wright Valley',
         id: 36,
-        subregions: [{ name: 'Mt. Fleming', id: 37 }],
+        subregions: [
+          {
+            name: 'Mt. Fleming',
+            id: 37,
+          },
+        ],
       },
     ],
   },
 ];
+
+// function to set a given theme/color-scheme
+function setTheme(themeName) {
+  localStorage.setItem('theme', themeName);
+  const controls = document.getElementById('controls');
+  document.body.className = themeName;
+}
+
+// function to toggle between light and dark theme
+function toggleTheme() {
+  if (localStorage.getItem('theme') === 'theme-dark') {
+    setTheme('theme-light');
+  } else {
+    setTheme('theme-dark');
+  }
+}
+
+// Immediately invoked function to set the theme on initial load
+function getTheme() {
+  if (localStorage.getItem('theme') === 'theme-dark') {
+    setTheme('theme-dark');
+    document.getElementById('slider').checked = false;
+  } else {
+    setTheme('theme-light');
+    document.getElementById('slider').checked = true;
+  }
+}

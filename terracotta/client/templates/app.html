@@ -43,12 +43,15 @@
   </head>
   <body>
     <div id="controls">
+      <label id="switch" class="switch">
+        <input type="checkbox" onchange="toggleTheme()" id="slider" />
+        <span class="slider round"></span>
+      </label>
       <img
         src="{{ url_for('static', filename='images/header_large.png') }}"
         class="header"
         id="header-one"
       />
-
       <div class="el-wrapper border-none">
         <div
           id="details__container"

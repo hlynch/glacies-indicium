@@ -11,20 +11,21 @@ body {
 }
 
 h1 {
-  color: #0b4566;
+  color: var(--color-primary);
   font-weight: normal;
   font-size: 32px;
 }
 
 h2 {
-  color: #0b4566;
+  color: var(--color-primary);
   font-weight: normal;
   font-size: 18px;
   line-height: 26px;
+  text-align: center;
 }
 
 h3 {
-  color: #0b4566;
+  color: var(--color-primary);
   font-weight: normal;
   font-size: 14px;
   margin: 10px 0px 10px 0px;
@@ -39,7 +40,7 @@ li {
 
 a {
   text-decoration: none;
-  color: #0b4566;
+  color: var(--color-primary);
 }
 
 input {
@@ -51,6 +52,10 @@ input[type='text'] {
   width: 200px;
   max-width: 50%;
   margin: 4px 0px;
+}
+
+#search-result-controls {
+  text-align: center;
 }
 
 .btn {
@@ -82,6 +87,10 @@ input[type='text'] {
 
 button {
   border: none;
+  background: none;
+  color: var(--font-color);
+  border-radius: 25px;
+  padding: 5px;
   text-align: center;
   text-decoration: none;
   font-size: 10px;
@@ -89,7 +98,8 @@ button {
 }
 
 button:hover:enabled {
-  background-color: #86a2b3;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
   cursor: pointer;
 }
 
@@ -126,6 +136,8 @@ img.header {
 }
 
 #controls {
+  background: var(--color-secondary);
+  color: var(--font-color);
   position: absolute;
   width: 400px;
   top: 0;
@@ -166,7 +178,7 @@ img.header {
 
 .el-wrapper {
   clear: both;
-  border-bottom: 1px solid #0b4566;
+  border-bottom: 1px solid var(--font-color);
   min-height: 54px;
 }
 
@@ -180,8 +192,8 @@ img.header {
   width: 16px;
   height: 8px;
   padding-bottom: 8px;
-  border: 2px solid #0b4566;
-  color: #0b4566;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
   text-align: center;
   font-size: 12px;
   font-weight: bold;
@@ -267,7 +279,8 @@ img.header {
 }
 
 #layerInfo__container--title {
-  background: #fff;
+  background: var(--color-secondary);
+  color: var(--font-color);
   height: 40px;
   min-width: 140px;
   cursor: pointer;
@@ -278,11 +291,11 @@ img.header {
 }
 
 #layerInfo__container--title:hover {
-  background: #f1feff;
+  background: var(--color-secondary);
 }
 
 #layerInfo__toggle--icon {
-  color: #0b4566;
+  color: var(--color-accent);
 }
 
 #layerInfo__toggle--title {
@@ -292,7 +305,8 @@ img.header {
 
 #layerInfo__container--content {
   display: none;
-  background: #fff;
+  background: var(--color-secondary);
+  color: var(--font-color);
 }
 
 #contrast-wrapper {
@@ -330,7 +344,7 @@ img.header {
 }
 
 .active {
-  background-color: #d0eff2;
+  color: var(--color-primary);
 }
 
 .clickable {
@@ -460,7 +474,7 @@ ul#errors {
 .loader__spinner {
   position: relative;
   border: 10px solid #fff; /* Light grey */
-  border-top: 10px solid #0b4566; /* Blue */
+  border-top: 10px solid var(--color-primary); /* Blue */
   border-radius: 50%;
   width: 100px;
   height: 100px;
@@ -521,9 +535,102 @@ label {
 }
 
 li:hover {
-  background-color: #f2f2f2;
+  border-bottom: 1px solid var(--color-primary);
 }
 
 li {
   padding: 5px;
+}
+
+.theme-light {
+  --color-primary: #0060df;
+  --color-secondary: #fbfbfe;
+  --color-hover: #f2f2f2;
+  --color-accent: #fd6f53;
+  --font-color: #000000;
+}
+
+.theme-dark {
+  --color-primary: #17ed90;
+  --color-secondary: #2a2c2d;
+  --color-hover: #12cdea;
+  --color-accent: #12cdea;
+  --font-color: #ffffff;
+}
+
+.switch {
+  float: right;
+  position: relative;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 40px;
+  width: 40px;
+  left: 0px;
+  bottom: 4px;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  box-shadow: 0 0px 15px #2020203d;
+  background: white url('https://i.ibb.co/FxzBYR9/night.png');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196f3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(24px);
+  -ms-transform: translateX(24px);
+  transform: translateX(24px);
+  background: white url('https://i.ibb.co/7JfqXxB/sunny.png');
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#search-results::-webkit-scrollbar {
+  display: none;
+}
+#search-results {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
