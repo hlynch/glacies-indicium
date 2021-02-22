@@ -244,6 +244,7 @@ function initUI(remote_host, keys) {
   // initialize list of keys and key descriptions
   let keyList = document.getElementById('key-list');
   keyList.innerHTML = '';
+  
   for (let i = 0; i < keys.length; i++) {
     let currentKey = keys[i].key;
     let label = document.createElement('label');
@@ -269,6 +270,9 @@ function initUI(remote_host, keys) {
       enabledSettings.length > 0
         ? console.table(enabledSettings)
         : console.log('No items selected');
+      
+      // ds_keys = keys of bands to display - may need to serializeKeys()
+      // toggleSinglebandMapLayer.bind( null, ds_keys );
     });
   });
 
