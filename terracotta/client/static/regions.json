@@ -1,0 +1,156 @@
+[
+  {
+    "name": "Northern Victoria Land",
+    "id": 1,
+    "subregions": [
+      {
+        "name": "Asgard Range",
+        "id": 2,
+        "subregions": [
+          {
+            "name": "Mt. Newall",
+            "id": 3
+          },
+          {
+            "name": "Round Mountain",
+            "id": 4
+          }
+        ]
+      },
+      {
+        "name": "Ferrar Glacier",
+        "id": 5,
+        "subregions": [
+          {
+            "name": "Kukri Hills",
+            "id": 6
+          },
+          {
+            "name": "Briggs Hills",
+            "id": 7
+          },
+          {
+            "name": "Thomas Heights",
+            "id": 8
+          }
+        ]
+      },
+      {
+        "name": "Kukri Hills",
+        "id": 9,
+        "subregions": [
+          {
+            "name": "Mt Coates",
+            "id": 10
+          }
+        ]
+      },
+      {
+        "name": "Quartermain Mountain",
+        "id": 11,
+        "subregions": [
+          {
+            "name": "Beacon Valley",
+            "id": 12
+          },
+          {
+            "name": "Pivot Peak",
+            "id": 13
+          }
+        ]
+      },
+      {
+        "name": "Royal Society Range",
+        "id": 14,
+        "subregions": [
+          {
+            "name": "Garwood Valley",
+            "id": 15
+          },
+          {
+            "name": "Miers Valley",
+            "id": 16
+          },
+          {
+            "name": "Heald Island",
+            "id": 17
+          },
+          {
+            "name": "Blue Glacier",
+            "id": 18
+          },
+          {
+            "name": "Mt. Rucker",
+            "id": 19
+          },
+          {
+            "name": "Trough Lake",
+            "id": 20
+          },
+          {
+            "name": "Mt. Huggins",
+            "id": 21
+          },
+          {
+            "name": "The Spire",
+            "id": 22
+          },
+          {
+            "name": "Table Mountain",
+            "id": 23
+          }
+        ]
+      },
+      {
+        "name": "Taylor Glacier",
+        "id": 24,
+        "subregions": [{ "name": "Northwest Mountain", "id": 25 }]
+      },
+      {
+        "name": "Taylor Valley",
+        "id": 26,
+        "subregions": [
+          {
+            "name": "Northwest Mountain",
+            "id": 27
+          },
+          {
+            "name": "New Harbor",
+            "id": 28
+          },
+          {
+            "name": "Fryxell Basin",
+            "id": 29
+          },
+          {
+            "name": "Kukri Hills",
+            "id": 30
+          },
+          {
+            "name": "Hoare Basin",
+            "id": 31
+          }
+        ]
+      },
+      {
+        "name": "Willett Range",
+        "id": 32,
+        "subregions": [
+          { "name": "Head Mountains", "id": 33 },
+          { "name": "Apocolypse Peaks", "id": 34 },
+          { "name": "Shapeles Mountain", "id": 35 }
+        ]
+      },
+      {
+        "name": "Wright Valley",
+        "id": 36,
+        "subregions": [
+          {
+            "name": "Mt. Fleming",
+            "id": 37
+          }
+        ]
+      }
+    ]
+  }
+]

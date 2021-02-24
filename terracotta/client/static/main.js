@@ -261,18 +261,6 @@ function initUI(remote_host, keys) {
     keyList.appendChild(label);
   }
 
-  const checkboxes = document.querySelectorAll('input[type=checkbox]');
-  checkboxes.forEach(function (checkbox) {
-    checkbox.addEventListener('change', function () {
-      enabledSettings = Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
-        .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
-        .map((i) => i.value); // Use Array.map to extract only the checkbox values from the array of objects.
-
-      enabledSettings.length > 0
-        ? console.table(enabledSettings)
-        : console.log('No items selected');
-    });
-  });
   resetLayerState();
   removeSpinner();
 }
@@ -326,6 +314,7 @@ function storeMetadata(metadata) {
 function httpGet(url) {
   return fetch(url)
     .then((response) => {
+      console.log(response);
       if (response.ok) {
         return response.json();
       }
@@ -544,13 +533,9 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
     ds_keys,
     layer_options
   );
-
   STATE.activeSinglebandLayer = {
     keys: ds_keys,
-    layer: L.tileLayer(layer_url, {
-      zIndex: 1,
-      opacity: 1,
-    }).addTo(STATE.map),
+    layer: L.tileLayer(layer_url).addTo(STATE.map),
   };
 
   $('.active').removeClass('active');
@@ -644,7 +629,7 @@ function updateComputedUrl(url, keys = null) {
     layerInfoParent.style.display = 'block';
     computedUrl.parentElement.style.display = 'block';
   }
-  computedUrl.innerHTML = `<b>current XYZ URL - </b>${url}`;
+  computedUrl.innerHTML = `<b class="bold">current XYZ URL - </b>${url}`;
   let metadata = null;
   if (keys != null) {
     metadata = STATE.dataset_metadata[serializeKeys(keys)];
@@ -663,7 +648,7 @@ function updateMetadataText(metadata) {
     return;
   }
   metadataField.style.display = 'block';
-  metadataField.innerHTML = '<b>current metadata -</b> ';
+  metadataField.innerHTML = '<b class="bold">current metadata -</b> ';
   if (metadata.mean)
     metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
   if (metadata.range)
@@ -796,15 +781,17 @@ function initializeApp(hostname) {
         "COMNAP</a><br>Base Map &copy; <a href='https://wiki.earthdata.nasa.gov/display/GIBS' target='_blank'>" +
         'NASA EOSDIS GIBS</a>';
       const nasaUrl =
-        'https://gibs.earthdata.nasa.gov' +
+        'https://gibs-{s}.earthdata.nasa.gov' +
         '/wmts/epsg3031/best/' +
-        '{layer}/default/{tileMatrixSet}/{z}/{y}/{x}.{format}';
+        '{layer}/default/{date}/{tileMatrixSet}/{z}/{y}/{x}.{format}';
 
       const blueMarble = new L.tileLayer(nasaUrl, {
         attribution: nasaAttrib,
         tileSize: 512,
         layer: 'BlueMarble_ShadedRelief_Bathymetry',
         tileMatrixSet: '500m',
+        subdomains: 'abc',
+        date: new Date().toISOString().substr(0, 10),
         format: 'jpg',
         zIndex: 1,
       });
@@ -815,10 +802,8 @@ function initializeApp(hostname) {
         layers: [blueMarble],
       });
 
-      STATE.map.setView(
-        new L.LatLng(-90, 0),
-        0
-      ); */
+      STATE.map.setView(new L.LatLng(-90, 0), 0);
+      */
       let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
       let osmAttrib =
         'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
@@ -829,13 +814,13 @@ function initializeApp(hostname) {
         layers: [osmBase],
       });
 
-      // Export map to a png image
       $('#exportButton').click(function (element) {
-        html2canvas(document.body).then(function (canvas) {
-          canvas.toBlob(function (blob) {
-            saveAs(blob, 'pretty image.png');
-          });
-        });
+        const currentRegion = $('.active').attr('id');
+
+        let fileUrl = `WV02_2210_GeoTIFF_stack_${currentRegion}.tif`;
+        currentRegion
+          ? console.log(fileUrl)
+          : alert('Please select a region to export!');
       });
     });
   addResizeListeners();
@@ -909,7 +894,6 @@ const json = [
       },
       {
         name: 'Ferrar Glacier',
-        fileName: 'WV02_2210_GeoTIFF_stack_1.tif',
         id: 5,
         subregions: [
           {
