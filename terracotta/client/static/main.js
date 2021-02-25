@@ -243,24 +243,6 @@ function getColormapValues(remote_host, num_values = 100) {
  * @param {Array<Terracotta.IKey>} keys
  */
 function initUI(remote_host, keys) {
-  // initialize list of keys and key descriptions
-  let keyList = document.getElementById('key-list');
-  keyList.innerHTML = '';
-  for (let i = 0; i < keys.length; i++) {
-    console.log(keys[i]);
-    let currentKey = keys[i].key;
-    let label = document.createElement('label');
-    let description = document.createTextNode(currentKey);
-    let newRadioButton = document.createElement('input');
-
-    newRadioButton.type = 'radio';
-    newRadioButton.value = currentKey;
-
-    label.appendChild(newRadioButton);
-    label.appendChild(description);
-    keyList.appendChild(label);
-  }
-
   const radioButtons = document.querySelectorAll('input[type=radio]');
 
   radioButtons.forEach((radioButton) => {
@@ -281,7 +263,8 @@ function getSelectedBandLayer(radioButtons) {
   let keys = [];
 
   const currentRegion = $('.active').attr('id');
-  keys.push({ key: selectedBands[0], value: currentRegion || '1' });
+  keys.push({ key: 'region', value: selectedBands[0] });
+  keys.push({ key: 'band', value: currentRegion || '2' });
 
   const datasetURL = assembleDatasetURL(
     STATE.remote_host,
@@ -291,7 +274,7 @@ function getSelectedBandLayer(radioButtons) {
   );
 
   httpGet(datasetURL).then((res) => {
-    updateSinglebandLayer([res.datasets[0].band]);
+    updateSinglebandLayer([res.datasets[0].region, res.datasets[0].band]);
   });
 }
 // ===================================================
@@ -405,14 +388,22 @@ function updateSearchResults(
   let key_constraints = [];
 
   const checkboxes = document.querySelectorAll('#key-list input');
-  for (let index = 0; index < checkboxes.length; index++) {
+  /* for (let index = 0; index < checkboxes.length; index++) {
     const ds_field = checkboxes[index];
     if (ds_field.value !== '') {
       key_constraints.push({ key: ds_field.name, value: ds_field.value });
     }
-  }
+  }*/
+  const datasetUrl = assembleDatasetURL(
+    STATE.remote_host,
+    key_constraints,
+    1000,
+    0
+  );
 
-  updateDatasetList(remote_host);
+  return httpGet(datasetUrl).then((res) => {
+    updateDatasetList(remote_host, res.datasets);
+  });
 }
 
 /**
@@ -422,11 +413,7 @@ function updateSearchResults(
  * @param {Array<Terracotta.IDataset>} datasets
  * @param {Array<Terracotta.IKey>} keys
  */
-function updateDatasetList(
-  remote_host = STATE.remote_host,
-  datasets = 10,
-  keys
-) {
+function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
   let datasetTable = document.getElementById('search-results');
 
   // disable next page if there are no more datasets
@@ -439,8 +426,7 @@ function updateDatasetList(
   } else {
     next_page_button.disabled = false;
   }
-
-  buildRegionTree(json, datasetTable);
+  buildRegionTree(json, datasets, datasetTable);
   removeListMargin();
 }
 
@@ -490,8 +476,8 @@ function toggleDatasetMouseover(element) {
   if (STATE.overlayLayer != null) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
+  const layer_id = element.target.id;
 
-  const layer_id = serializeKeys([element.target.id]);
   const metadata = STATE.dataset_metadata[layer_id];
 
   if (!metadata) return;
@@ -525,7 +511,6 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
   if (STATE.activeSinglebandLayer) {
     currentKeys = STATE.activeSinglebandLayer.keys;
   }
-
   resetLayerState();
 
   if (!ds_keys || compareArray(currentKeys, ds_keys)) {
@@ -568,7 +553,6 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
 
   $('.active').removeClass('active');
   const dataset_layer = document.getElementById(`${layer_id}`);
-
   dataset_layer.classList.add('active');
 
   if (resetView && metadata) {
@@ -860,36 +844,44 @@ function initializeApp(hostname) {
  * @param {JSON} regions
  * @param {HTML Element} container
  */
-function buildRegionTree(regions, container) {
+function buildRegionTree(regions, dataset, container) {
   regions.forEach((region) => {
+    let metadataArray = createMetadataArray(region, dataset);
     let listRoot = document.createElement('ul');
-    let newListElement = createListElement(region);
+    let newListElement = createListElement(region, metadataArray);
     listRoot.appendChild(newListElement);
 
     if (region.subregions !== undefined)
-      buildRegionTree(region.subregions, listRoot);
-    if (newListElement.id < 10) {
-      httpGet(
-        assembleMetadataURL(STATE.remote_host, [newListElement.id])
-      ).then((metadata) => storeMetadata(metadata));
-    }
+      buildRegionTree(region.subregions, dataset, listRoot);
+
     container.appendChild(listRoot);
   });
+}
+
+function createMetadataArray(region, dataset) {
+  let newArray = [];
+  newArray.push(dataset[region.id].region);
+  newArray.push(dataset[region.id].band);
+
+  httpGet(assembleMetadataURL(STATE.remote_host, newArray)).then((metadata) =>
+    storeMetadata(metadata)
+  );
+
+  return newArray;
 }
 
 /**
  * Creates new list element with event listeners for hover and click
  * @param {JSON} content
  */
-function createListElement(content) {
+function createListElement(content, metadata) {
   const listElement = document.createElement('li');
   listElement.innerHTML = content.name;
-  listElement.id = content.id;
+  listElement.id = serializeKeys(metadata);
   listElement.classList.add('clickable');
-
   listElement.addEventListener(
     'click',
-    toggleSinglebandMapLayer.bind(null, [content.id])
+    toggleSinglebandMapLayer.bind(null, metadata)
   );
   listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
   listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
