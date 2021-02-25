@@ -247,24 +247,53 @@ function initUI(remote_host, keys) {
   let keyList = document.getElementById('key-list');
   keyList.innerHTML = '';
   for (let i = 0; i < keys.length; i++) {
+    console.log(keys[i]);
     let currentKey = keys[i].key;
     let label = document.createElement('label');
     let description = document.createTextNode(currentKey);
-    let checkbox = document.createElement('input');
+    let newRadioButton = document.createElement('input');
 
-    checkbox.type = 'checkbox';
-    checkbox.name = currentKey;
-    checkbox.value = currentKey;
+    newRadioButton.type = 'radio';
+    newRadioButton.value = currentKey;
 
-    label.appendChild(checkbox);
+    label.appendChild(newRadioButton);
     label.appendChild(description);
     keyList.appendChild(label);
   }
+
+  const radioButtons = document.querySelectorAll('input[type=radio]');
+
+  radioButtons.forEach((radioButton) => {
+    radioButton.addEventListener('change', () => {
+      getSelectedBandLayer(radioButtons);
+    });
+  });
 
   resetLayerState();
   removeSpinner();
 }
 
+function getSelectedBandLayer(radioButtons) {
+  const selectedBands = Array.from(radioButtons)
+    .filter((i) => i.checked)
+    .map((i) => i.value);
+
+  let keys = [];
+
+  const currentRegion = $('.active').attr('id');
+  keys.push({ key: selectedBands[0], value: currentRegion || '1' });
+
+  const datasetURL = assembleDatasetURL(
+    STATE.remote_host,
+    keys,
+    DATASETS_PER_PAGE,
+    STATE.current_dataset_page
+  );
+
+  httpGet(datasetURL).then((res) => {
+    updateSinglebandLayer([res.datasets[0].band]);
+  });
+}
 // ===================================================
 // Helper functions
 // ===================================================
@@ -314,7 +343,6 @@ function storeMetadata(metadata) {
 function httpGet(url) {
   return fetch(url)
     .then((response) => {
-      console.log(response);
       if (response.ok) {
         return response.json();
       }
@@ -840,7 +868,7 @@ function buildRegionTree(regions, container) {
 
     if (region.subregions !== undefined)
       buildRegionTree(region.subregions, listRoot);
-    if (newListElement.id < DATASETS_PER_PAGE) {
+    if (newListElement.id < 10) {
       httpGet(
         assembleMetadataURL(STATE.remote_host, [newListElement.id])
       ).then((metadata) => storeMetadata(metadata));
