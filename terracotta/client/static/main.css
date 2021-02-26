@@ -599,6 +599,7 @@ span.icon {
   background: url('images/g-normal.png') transparent 5px 50% no-repeat;
   display: inline-block;
   vertical-align: middle;
+  border-radius: 25px;
   width: 42px;
   height: 42px;
 }
@@ -611,4 +612,9 @@ span.buttonText {
   font-weight: bold;
   /* Use the Roboto font that is loaded in the <head> */
   font-family: 'Roboto', sans-serif;
+}
+
+#authorize_button {
+  background-color: #fff;
+  color: #000 !important;
 }

@@ -109,6 +109,7 @@ function assembleDatasetURL(remote_host, key_constraints, limit, page) {
   for (let i = 0; i < key_constraints.length; i++) {
     request_url += `&${key_constraints[i].key}=${key_constraints[i].value}`;
   }
+  console.log(request_url);
   return request_url;
 }
 
@@ -891,7 +892,6 @@ function initClient() {
  *  appropriately. After a sign-in, the API is called.
  */
 function updateSigninStatus(isSignedIn) {
-  console.log(isSignedIn);
   var authorizeButton = document.getElementById('authorize_button');
   var signoutButton = document.getElementById('signout_button');
 
