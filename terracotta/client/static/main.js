@@ -75,6 +75,7 @@ const STATE = {
   overlayLayer: undefined,
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
+  driveFiles: [],
   m_pos: 0,
 };
 
@@ -516,8 +517,15 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
   if (!ds_keys || compareArray(currentKeys, ds_keys)) {
     return;
   }
+  const fileName = 'WV02_' + ds_keys[0] + '_ds_' + ds_keys[1] + '.tif';
+  const fileDownloadLink = getFileDownloadLink(fileName);
+  updateExportButtonLink(fileDownloadLink);
 
   updateSinglebandLayer(ds_keys, resetView);
+}
+
+function updateExportButtonLink(fileDownloadLink) {
+  $('#exportButton').attr('href', fileDownloadLink);
 }
 
 /**
@@ -825,20 +833,123 @@ function initializeApp(hostname) {
         zoom: 2,
         layers: [osmBase],
       });
-
-      $('#exportButton').click(function (element) {
-        const currentRegion = $('.active').attr('id');
-
-        let fileUrl = `WV02_2210_GeoTIFF_stack_${currentRegion}.tif`;
-        currentRegion
-          ? console.log(fileUrl)
-          : alert('Please select a region to export!');
-      });
     });
   addResizeListeners();
   getTheme();
 }
+/**
+ *  On load, called to load the auth2 library and API client library.
+ */
+function handleClientLoad() {
+  gapi.load('client:auth2', initClient);
+}
 
+/**
+ *  Initializes the API client library and sets up sign-in state
+ *  listeners.
+ */
+function initClient() {
+  var CLIENT_ID =
+    '975982665680-97lcqjf10qv490i6424p0slg93gl3qv4.apps.googleusercontent.com';
+  var API_KEY = 'AIzaSyDDEkuJal1ZlOYbGfErEeUiTZsDSPEDXV8';
+  var DISCOVERY_DOCS = [
+    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+  ];
+
+  // Authorization scopes required by the API; multiple scopes can be
+  // included, separated by spaces.
+  var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
+
+  var authorizeButton = document.getElementById('authorize_button');
+  var signoutButton = document.getElementById('signout_button');
+
+  gapi.client
+    .init({
+      apiKey: API_KEY,
+      clientId: CLIENT_ID,
+      discoveryDocs: DISCOVERY_DOCS,
+      scope: SCOPES,
+    })
+    .then(
+      function () {
+        // Listen for sign-in state changes.
+        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+
+        // Handle the initial sign-in state.
+        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+        authorizeButton.onclick = handleAuthClick;
+        signoutButton.onclick = handleSignoutClick;
+      },
+      function (error) {
+        console.log(JSON.stringify(error, null, 2));
+      }
+    );
+}
+
+/**
+ *  Called when the signed in status changes, to update the UI
+ *  appropriately. After a sign-in, the API is called.
+ */
+function updateSigninStatus(isSignedIn) {
+  console.log(isSignedIn);
+  var authorizeButton = document.getElementById('authorize_button');
+  var signoutButton = document.getElementById('signout_button');
+
+  if (isSignedIn) {
+    authorizeButton.style.display = 'none';
+    signoutButton.style.display = 'block';
+    getAllFiles();
+  } else {
+    authorizeButton.style.display = 'block';
+    signoutButton.style.display = 'none';
+  }
+}
+
+/**
+ *  Sign in the user upon button click.
+ */
+function handleAuthClick(event) {
+  gapi.auth2.getAuthInstance().signIn();
+}
+
+/**
+ *  Sign out the user upon button click.
+ */
+function handleSignoutClick(event) {
+  gapi.auth2.getAuthInstance().signOut();
+}
+
+/**
+ * Retrieves all files within Google Drive folder
+ */
+function getAllFiles() {
+  gapi.client.drive.files
+    .list({
+      q: "'1Y4kIY0XTCUPs-RniOYFFhaXxkpsHwXgL' in parents and trashed=false",
+      fields: 'nextPageToken, files(id, name)',
+    })
+    .then(function (response) {
+      var files = response.result.files;
+      if (files && files.length > 0) {
+        STATE.driveFiles = files;
+      } else {
+        console.log('No files found.');
+      }
+    });
+}
+
+/**
+ * Parse Google Drive Folder contents for specific file
+ * @param {string} filename
+ */
+function getFileDownloadLink(filename) {
+  for (var i = 0; i < STATE.driveFiles.length; i++) {
+    var file = STATE.driveFiles[i];
+    if (file.name === filename) {
+      return `https://drive.google.com/uc?export=download&id=${file.id}`;
+    }
+  }
+}
 /**
  * Parses json list of regions and creates nested menu
  * @param {JSON} regions

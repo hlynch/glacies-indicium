@@ -1,5 +1,4 @@
 from typing import Any
-
 from flask import Flask, render_template, current_app, Blueprint
 
 client_api = Blueprint('client_api', 'terracotta.client')

@@ -37,9 +37,6 @@
     <script src="{{ url_for('static', filename='main.js') }}"></script>
     <script src="{{ url_for('static', filename='proj4.js')}}"></script>
     <script src="{{ url_for('static', filename='proj4leaflet.js')}}"></script>
-    <script src="{{ url_for('static', filename='html2canvas.min.js')}}"></script>
-    <script src="{{ url_for('static', filename='fileSaver.js')}}"></script>
-    <script src="{{ url_for('static', filename='canvas-toBlob.js')}}"></script>
   </head>
   <body>
     <div id="controls">
@@ -53,6 +50,19 @@
         id="header-one"
       />
       <div class="el-wrapper border-none">
+        <!--<div id="gSignInWrapper">
+          <span class="label" id="loginStatus">Sign in with:</span>
+          <div id="customBtn" class="customGPlusSignIn">
+            <span class="icon" id="authorize_button"></span>
+            <span class="buttonText">Google</span>
+          </div>
+        </div> -->
+        <button id="authorize_button" style="display: none">
+          Authorize <span class="icon" id="authorize_button"></span>
+        </button>
+        <button id="signout_button" style="display: none">
+          Sign Out <span class="icon" id="authorize_button"></span>
+        </button>
         <div
           id="details__container"
           class="clickable"
@@ -70,7 +80,9 @@
       </div>
 
       <div class="el-wrapper">
-        <a class="btn btn-primary" id="exportButton">Export Map</a>
+        <a class="btn btn-primary" id="exportButton" target="_blank" download>
+          Export Map
+        </a>
       </div>
 
       <div id="widget"></div>
@@ -126,6 +138,13 @@
       <ul id="errors"></ul>
     </aside>
 
+    <script
+      async
+      defer
+      src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()"
+    ></script>
     <script type="text/javascript">
       window.onload = initializeApp.bind(null, '{{ hostname }}');
     </script>
