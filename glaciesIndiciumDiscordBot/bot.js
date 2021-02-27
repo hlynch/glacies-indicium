@@ -7,11 +7,12 @@ client.on('ready', () => {
     .get('812823537953538091')
     .send('Welcome, I will now remind everyone every week!'); * /
 });
-
+*/
 client.on('message', (message) => {
   if (message.content === 'ping') {
     message.reply('pong');
   }
+  console.log('ready');
 });
 
 /** Sends message on Mondays at 2:30PM, Wednesdays at 3:30PM, and Fridays at 1:00PM */
@@ -35,18 +36,6 @@ let timer = setInterval(function () {
       client.channels
         .get('812823537953538091')
         .send('@everyone See you guys in one hour!');
-    }
-  } else if (
-    now.getMonth() === 1 &&
-    now.getDate() == 25 &&
-    now.getFullYear() == 2021
-  ) {
-    if (now.getUTCHours() - 7 == 17 && now.getUTCMinutes() == 30) {
-      client.channels
-        .get('812823537953538091')
-        .send(
-          '@everyone See you guys in one hour for the design review recording!'
-        );
     }
   }
 }, 60 * 1000);
