@@ -164,7 +164,9 @@ img.header {
   overflow-x: hidden;
   overflow-y: auto;
 }
-
+#top-controls {
+  margin-bottom: 20px;
+}
 .input__text--upper {
   text-align: right;
 }

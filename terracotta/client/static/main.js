@@ -79,6 +79,167 @@ const STATE = {
   m_pos: 0,
 };
 
+/**
+ * Current hardcoded list of regions/ids
+ * TODO: Dynamically create this list and store as JSON file
+ */
+const json = [
+  {
+    name: 'Northern Victoria Land',
+    id: 1,
+    subregions: [
+      {
+        name: 'Asgard Range',
+        id: 2,
+        subregions: [
+          {
+            name: 'Mt. Newall',
+            id: 3,
+          },
+          {
+            name: 'Round Mountain',
+            id: 4,
+          },
+        ],
+      },
+      {
+        name: 'Ferrar Glacier',
+        id: 5,
+        subregions: [
+          {
+            name: 'Kukri Hills',
+            id: 6,
+          },
+          {
+            name: 'Briggs Hills',
+            id: 7,
+          },
+          {
+            name: 'Thomas Heights',
+            id: 8,
+          },
+        ],
+      },
+      {
+        name: 'Kukri Hills',
+        id: 9,
+        subregions: [
+          {
+            name: 'Mt Coates',
+            id: 10,
+          },
+        ],
+      },
+      {
+        name: 'Quartermain Mountain',
+        id: 11,
+        subregions: [
+          {
+            name: 'Beacon Valley',
+            id: 12,
+          },
+          {
+            name: 'Pivot Peak',
+            id: 13,
+          },
+        ],
+      },
+      {
+        name: 'Royal Society Range',
+        id: 14,
+        subregions: [
+          {
+            name: 'Garwood Valley',
+            id: 15,
+          },
+          {
+            name: 'Miers Valley',
+            id: 16,
+          },
+          {
+            name: 'Heald Island',
+            id: 17,
+          },
+          {
+            name: 'Blue Glacier',
+            id: 18,
+          },
+          {
+            name: 'Mt. Rucker',
+            id: 19,
+          },
+          {
+            name: 'Trough Lake',
+            id: 20,
+          },
+          {
+            name: 'Mt. Huggins',
+            id: 21,
+          },
+          {
+            name: 'The Spire',
+            id: 22,
+          },
+          {
+            name: 'Table Mountain',
+            id: 23,
+          },
+        ],
+      },
+      {
+        name: 'Taylor Glacier',
+        id: 24,
+        subregions: [{ name: 'Northwest Mountain', id: 25 }],
+      },
+      {
+        name: 'Taylor Valley',
+        id: 26,
+        subregions: [
+          {
+            name: 'Northwest Mountain',
+            id: 27,
+          },
+          {
+            name: 'New Harbor',
+            id: 28,
+          },
+          {
+            name: 'Fryxell Basin',
+            id: 29,
+          },
+          {
+            name: 'Kukri Hills',
+            id: 30,
+          },
+          {
+            name: 'Hoare Basin',
+            id: 31,
+          },
+        ],
+      },
+      {
+        name: 'Willett Range',
+        id: 32,
+        subregions: [
+          { name: 'Head Mountains', id: 33 },
+          { name: 'Apocolypse Peaks', id: 34 },
+          { name: 'Shapeles Mountain', id: 35 },
+        ],
+      },
+      {
+        name: 'Wright Valley',
+        id: 36,
+        subregions: [
+          {
+            name: 'Mt. Fleming',
+            id: 37,
+          },
+        ],
+      },
+    ],
+  },
+];
+
 // ===================================================
 // Convenience functions to get valid Terracotta URLs.
 // ===================================================
@@ -109,7 +270,6 @@ function assembleDatasetURL(remote_host, key_constraints, limit, page) {
   for (let i = 0; i < key_constraints.length; i++) {
     request_url += `&${key_constraints[i].key}=${key_constraints[i].value}`;
   }
-  console.log(request_url);
   return request_url;
 }
 
@@ -257,6 +417,11 @@ function initUI(remote_host, keys) {
   removeSpinner();
 }
 
+/**
+ *Gets current selected band from radio buttons.
+ *
+ * @param {Array<HtmlElement} radioButtons
+ */
 function getSelectedBandLayer(radioButtons) {
   const selectedBands = Array.from(radioButtons)
     .filter((i) => i.checked)
@@ -279,6 +444,68 @@ function getSelectedBandLayer(radioButtons) {
     updateSinglebandLayer([res.datasets[0].region, res.datasets[0].band]);
   });
 }
+
+/**
+ * Check for current theme when page is loaded
+ */
+function getTheme() {
+  if (localStorage.getItem('theme') === 'theme-dark') {
+    setTheme('theme-dark');
+    document.getElementById('slider').checked = false;
+  } else {
+    setTheme('theme-light');
+    document.getElementById('slider').checked = true;
+  }
+}
+
+/**
+ *  Initializes the API client library and retreives all files in the Drive.
+ */
+function initClient() {
+  var CLIENT_ID =
+    '975982665680-97lcqjf10qv490i6424p0slg93gl3qv4.apps.googleusercontent.com';
+  var API_KEY = 'AIzaSyDDEkuJal1ZlOYbGfErEeUiTZsDSPEDXV8';
+  var DISCOVERY_DOCS = [
+    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
+  ];
+
+  var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
+  gapi.client
+    .init({
+      apiKey: API_KEY,
+      clientId: CLIENT_ID,
+      discoveryDocs: DISCOVERY_DOCS,
+      scope: SCOPES,
+    })
+    .then(
+      () => {
+        getAllFiles();
+      },
+      (error) => {
+        console.log(JSON.stringify(error, null, 2));
+      }
+    );
+}
+
+/**
+ * Parses json list of regions and creates nested menu
+ * @param {JSON} regions
+ * @param {HTML Element} container
+ */
+function buildRegionTree(regions, dataset, container) {
+  regions.forEach((region) => {
+    let metadataArray = createMetadataArray(region, dataset);
+    let listRoot = document.createElement('ul');
+    let newListElement = createListElement(region, metadataArray);
+    listRoot.appendChild(newListElement);
+
+    if (region.subregions !== undefined)
+      buildRegionTree(region.subregions, dataset, listRoot);
+
+    container.appendChild(listRoot);
+  });
+}
+
 // ===================================================
 // Helper functions
 // ===================================================
@@ -389,13 +616,6 @@ function updateSearchResults(
   // get key constraints from UI
   let key_constraints = [];
 
-  const checkboxes = document.querySelectorAll('#key-list input');
-  /* for (let index = 0; index < checkboxes.length; index++) {
-    const ds_field = checkboxes[index];
-    if (ds_field.value !== '') {
-      key_constraints.push({ key: ds_field.name, value: ds_field.value });
-    }
-  }*/
   const datasetUrl = assembleDatasetURL(
     STATE.remote_host,
     key_constraints,
@@ -525,6 +745,10 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
   updateSinglebandLayer(ds_keys, resetView);
 }
 
+/**
+ * Update the download link to be the current file set.
+ * @param {string} fileDownloadLink
+ */
 function updateExportButtonLink(fileDownloadLink) {
   $('#exportButton').attr('href', fileDownloadLink);
 }
@@ -687,6 +911,25 @@ function updateMetadataText(metadata) {
 }
 
 /**
+ *  Update webpage theme in browser
+ */
+function setTheme(themeName) {
+  localStorage.setItem('theme', themeName);
+  document.body.className = themeName;
+}
+
+/**
+ * Toggle between light and dark theme
+ */
+function toggleTheme() {
+  if (localStorage.getItem('theme') === 'theme-dark') {
+    setTheme('theme-light');
+  } else {
+    setTheme('theme-dark');
+  }
+}
+
+/**
  *  Called in app.html on Details info toggle
  * @global
  */
@@ -758,6 +1001,90 @@ function resize(e) {
     parseInt(getComputedStyle(panel, '').marginLeft) + dx - 50 + 'px';
   resizeBuffer.style.marginLeft = posX;
   map.style.left = posX;
+}
+
+/**
+ * Retrieve and strore metadata values for current region
+ * @param {JSON} region
+ * @param {JSON} dataset
+ */
+function createMetadataArray(region, dataset) {
+  let newArray = [];
+  newArray.push(dataset[region.id].region);
+  newArray.push(dataset[region.id].band);
+
+  httpGet(assembleMetadataURL(STATE.remote_host, newArray)).then((metadata) =>
+    storeMetadata(metadata)
+  );
+
+  return newArray;
+}
+
+/**
+ * Creates new list element with event listeners for hover and click
+ * @param {JSON} content
+ */
+function createListElement(content, metadata) {
+  const listElement = document.createElement('li');
+  listElement.innerHTML = content.name;
+  listElement.id = serializeKeys(metadata);
+  listElement.classList.add('clickable');
+  listElement.addEventListener(
+    'click',
+    toggleSinglebandMapLayer.bind(null, metadata)
+  );
+  listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
+  listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
+
+  return listElement;
+}
+
+/**
+ * Display Google Sign in button and listen for changes.
+ */
+function renderButton() {
+  gapi.signin2.render('signin2', {
+    scope: 'profile email',
+    width: 150,
+    height: 30,
+    longtitle: false,
+    theme: 'dark',
+    onsuccess: onSuccess,
+    onfailure: onFailure,
+  });
+}
+
+/**
+ * Retrieves all files within Google Drive folder.
+ */
+function getAllFiles() {
+  gapi.client.drive.files
+    .list({
+      q: "'1Y4kIY0XTCUPs-RniOYFFhaXxkpsHwXgL' in parents and trashed=false",
+      fields: 'nextPageToken, files(id, name)',
+    })
+    .then(function (response) {
+      var files = response.result.files;
+
+      if (files && files.length > 0) {
+        STATE.driveFiles = files;
+      } else {
+        console.log('No files found.');
+      }
+    });
+}
+
+/**
+ * Parse Google Drive Folder contents for specific file
+ * @param {string} filename
+ */
+function getFileDownloadLink(filename) {
+  for (var i = 0; i < STATE.driveFiles.length; i++) {
+    var file = STATE.driveFiles[i];
+    if (file.name === filename) {
+      return `https://drive.google.com/uc?export=download&id=${file.id}`;
+    }
+  }
 }
 
 /**
@@ -838,6 +1165,7 @@ function initializeApp(hostname) {
   addResizeListeners();
   getTheme();
 }
+
 /**
  *  On load, called to load the auth2 library and API client library.
  */
@@ -846,344 +1174,15 @@ function handleClientLoad() {
 }
 
 /**
- *  Initializes the API client library and sets up sign-in state
- *  listeners.
+ * Logs when user successfully signs into Google.
  */
-function initClient() {
-  var CLIENT_ID =
-    '975982665680-97lcqjf10qv490i6424p0slg93gl3qv4.apps.googleusercontent.com';
-  var API_KEY = 'AIzaSyDDEkuJal1ZlOYbGfErEeUiTZsDSPEDXV8';
-  var DISCOVERY_DOCS = [
-    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
-  ];
-
-  // Authorization scopes required by the API; multiple scopes can be
-  // included, separated by spaces.
-  var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
-
-  var authorizeButton = document.getElementById('authorize_button');
-  var signoutButton = document.getElementById('signout_button');
-
-  gapi.client
-    .init({
-      apiKey: API_KEY,
-      clientId: CLIENT_ID,
-      discoveryDocs: DISCOVERY_DOCS,
-      scope: SCOPES,
-    })
-    .then(
-      function () {
-        // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-
-        // Handle the initial sign-in state.
-        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-        authorizeButton.onclick = handleAuthClick;
-        signoutButton.onclick = handleSignoutClick;
-      },
-      function (error) {
-        console.log(JSON.stringify(error, null, 2));
-      }
-    );
+function onSuccess(googleUser) {
+  console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
 }
 
 /**
- *  Called when the signed in status changes, to update the UI
- *  appropriately. After a sign-in, the API is called.
+ * Logs when user unsuccessfully signs into Google.
  */
-function updateSigninStatus(isSignedIn) {
-  var authorizeButton = document.getElementById('authorize_button');
-  var signoutButton = document.getElementById('signout_button');
-
-  if (isSignedIn) {
-    authorizeButton.style.display = 'none';
-    signoutButton.style.display = 'block';
-    getAllFiles();
-  } else {
-    authorizeButton.style.display = 'block';
-    signoutButton.style.display = 'none';
-  }
-}
-
-/**
- *  Sign in the user upon button click.
- */
-function handleAuthClick(event) {
-  gapi.auth2.getAuthInstance().signIn();
-}
-
-/**
- *  Sign out the user upon button click.
- */
-function handleSignoutClick(event) {
-  gapi.auth2.getAuthInstance().signOut();
-}
-
-/**
- * Retrieves all files within Google Drive folder
- */
-function getAllFiles() {
-  gapi.client.drive.files
-    .list({
-      q: "'1Y4kIY0XTCUPs-RniOYFFhaXxkpsHwXgL' in parents and trashed=false",
-      fields: 'nextPageToken, files(id, name)',
-    })
-    .then(function (response) {
-      var files = response.result.files;
-      if (files && files.length > 0) {
-        STATE.driveFiles = files;
-      } else {
-        console.log('No files found.');
-      }
-    });
-}
-
-/**
- * Parse Google Drive Folder contents for specific file
- * @param {string} filename
- */
-function getFileDownloadLink(filename) {
-  for (var i = 0; i < STATE.driveFiles.length; i++) {
-    var file = STATE.driveFiles[i];
-    if (file.name === filename) {
-      return `https://drive.google.com/uc?export=download&id=${file.id}`;
-    }
-  }
-}
-/**
- * Parses json list of regions and creates nested menu
- * @param {JSON} regions
- * @param {HTML Element} container
- */
-function buildRegionTree(regions, dataset, container) {
-  regions.forEach((region) => {
-    let metadataArray = createMetadataArray(region, dataset);
-    let listRoot = document.createElement('ul');
-    let newListElement = createListElement(region, metadataArray);
-    listRoot.appendChild(newListElement);
-
-    if (region.subregions !== undefined)
-      buildRegionTree(region.subregions, dataset, listRoot);
-
-    container.appendChild(listRoot);
-  });
-}
-
-function createMetadataArray(region, dataset) {
-  let newArray = [];
-  newArray.push(dataset[region.id].region);
-  newArray.push(dataset[region.id].band);
-
-  httpGet(assembleMetadataURL(STATE.remote_host, newArray)).then((metadata) =>
-    storeMetadata(metadata)
-  );
-
-  return newArray;
-}
-
-/**
- * Creates new list element with event listeners for hover and click
- * @param {JSON} content
- */
-function createListElement(content, metadata) {
-  const listElement = document.createElement('li');
-  listElement.innerHTML = content.name;
-  listElement.id = serializeKeys(metadata);
-  listElement.classList.add('clickable');
-  listElement.addEventListener(
-    'click',
-    toggleSinglebandMapLayer.bind(null, metadata)
-  );
-  listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
-  listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
-
-  return listElement;
-}
-
-/**
- * Current hardcoded list of regions/ids
- * TODO: Dynamically create this list and store as JSON file
- */
-const json = [
-  {
-    name: 'Northern Victoria Land',
-    id: 1,
-    subregions: [
-      {
-        name: 'Asgard Range',
-        id: 2,
-        subregions: [
-          {
-            name: 'Mt. Newall',
-            id: 3,
-          },
-          {
-            name: 'Round Mountain',
-            id: 4,
-          },
-        ],
-      },
-      {
-        name: 'Ferrar Glacier',
-        id: 5,
-        subregions: [
-          {
-            name: 'Kukri Hills',
-            id: 6,
-          },
-          {
-            name: 'Briggs Hills',
-            id: 7,
-          },
-          {
-            name: 'Thomas Heights',
-            id: 8,
-          },
-        ],
-      },
-      {
-        name: 'Kukri Hills',
-        id: 9,
-        subregions: [
-          {
-            name: 'Mt Coates',
-            id: 10,
-          },
-        ],
-      },
-      {
-        name: 'Quartermain Mountain',
-        id: 11,
-        subregions: [
-          {
-            name: 'Beacon Valley',
-            id: 12,
-          },
-          {
-            name: 'Pivot Peak',
-            id: 13,
-          },
-        ],
-      },
-      {
-        name: 'Royal Society Range',
-        id: 14,
-        subregions: [
-          {
-            name: 'Garwood Valley',
-            id: 15,
-          },
-          {
-            name: 'Miers Valley',
-            id: 16,
-          },
-          {
-            name: 'Heald Island',
-            id: 17,
-          },
-          {
-            name: 'Blue Glacier',
-            id: 18,
-          },
-          {
-            name: 'Mt. Rucker',
-            id: 19,
-          },
-          {
-            name: 'Trough Lake',
-            id: 20,
-          },
-          {
-            name: 'Mt. Huggins',
-            id: 21,
-          },
-          {
-            name: 'The Spire',
-            id: 22,
-          },
-          {
-            name: 'Table Mountain',
-            id: 23,
-          },
-        ],
-      },
-      {
-        name: 'Taylor Glacier',
-        id: 24,
-        subregions: [{ name: 'Northwest Mountain', id: 25 }],
-      },
-      {
-        name: 'Taylor Valley',
-        id: 26,
-        subregions: [
-          {
-            name: 'Northwest Mountain',
-            id: 27,
-          },
-          {
-            name: 'New Harbor',
-            id: 28,
-          },
-          {
-            name: 'Fryxell Basin',
-            id: 29,
-          },
-          {
-            name: 'Kukri Hills',
-            id: 30,
-          },
-          {
-            name: 'Hoare Basin',
-            id: 31,
-          },
-        ],
-      },
-      {
-        name: 'Willett Range',
-        id: 32,
-        subregions: [
-          { name: 'Head Mountains', id: 33 },
-          { name: 'Apocolypse Peaks', id: 34 },
-          { name: 'Shapeles Mountain', id: 35 },
-        ],
-      },
-      {
-        name: 'Wright Valley',
-        id: 36,
-        subregions: [
-          {
-            name: 'Mt. Fleming',
-            id: 37,
-          },
-        ],
-      },
-    ],
-  },
-];
-
-// function to set a given theme/color-scheme
-function setTheme(themeName) {
-  localStorage.setItem('theme', themeName);
-  const controls = document.getElementById('controls');
-  document.body.className = themeName;
-}
-
-// function to toggle between light and dark theme
-function toggleTheme() {
-  if (localStorage.getItem('theme') === 'theme-dark') {
-    setTheme('theme-light');
-  } else {
-    setTheme('theme-dark');
-  }
-}
-
-// Immediately invoked function to set the theme on initial load
-function getTheme() {
-  if (localStorage.getItem('theme') === 'theme-dark') {
-    setTheme('theme-dark');
-    document.getElementById('slider').checked = false;
-  } else {
-    setTheme('theme-light');
-    document.getElementById('slider').checked = true;
-  }
+function onFailure(error) {
+  console.log(error);
 }
