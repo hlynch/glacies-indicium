@@ -112,7 +112,13 @@
         <div class="panel-group list-group-item list-group-item-action">
           <div class="panel panel-default">
             <div class="panel-heading">
-                <a class="dropdrown-link" data-toggle="collapse" href="#collapse1" onclick="toggleDropdown(this)">Design Review 1<i class="fa fa-angle-down ml-2"></i></a>
+              <a
+                class="dropdrown-link"
+                data-toggle="collapse"
+                href="#collapse1"
+                onclick="toggleDropdown(this)"
+                >Design Review 1<i class="fa fa-angle-down ml-2"></i
+              ></a>
             </div>
             <div id="collapse1" class="panel-collapse collapse">
               <div class="iframe-container">
@@ -120,7 +126,6 @@
                   class="resp-iframe"
                   src="https://www.youtube.com/embed/XJb6wWcWeXE"
                   frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowfullscreen
                 ></iframe>
               </div>
@@ -138,8 +143,14 @@
         <div class="panel-group list-group-item list-group-item-action">
           <div class="panel panel-default">
             <div class="panel-heading">
-                <a class="dropdrown-link" data-toggle="collapse" href="#collapse2" onclick="toggleDropdown(this)">
-                  Design Review 2 <i class="fa fa-angle-down ml-2"></i></a>
+              <a
+                class="dropdrown-link"
+                data-toggle="collapse"
+                href="#collapse2"
+                onclick="toggleDropdown(this)"
+              >
+                Design Review 2 <i class="fa fa-angle-down ml-2"></i
+              ></a>
             </div>
             <div id="collapse2" class="panel-collapse collapse">
               <div class="iframe-container">
@@ -147,7 +158,6 @@
                   class="resp-iframe"
                   src="https://www.youtube.com/embed/uaTLV7b6J34"
                   frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowfullscreen
                 ></iframe>
               </div>
@@ -155,14 +165,15 @@
           </div>
         </div>
       </div>
+    </div>
     <script src="js/script.js"></script>
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script>
-     function toggleDropdown(element){
-        $(element).find("i").toggleClass('fa-angle-down');
-        $(element).find("i").toggleClass('fa-angle-up');
-      };
+      function toggleDropdown(element) {
+        $(element).find('i').toggleClass('fa-angle-down');
+        $(element).find('i').toggleClass('fa-angle-up');
+      }
     </script>
   </body>
 </html>

@@ -603,18 +603,13 @@ span.icon {
   width: 42px;
   height: 42px;
 }
-span.buttonText {
+#signout_button {
   display: inline-block;
   vertical-align: middle;
   padding-left: 42px;
   padding-right: 42px;
   font-size: 14px;
-  font-weight: bold;
-  /* Use the Roboto font that is loaded in the <head> */
   font-family: 'Roboto', sans-serif;
-}
-
-#authorize_button {
   background-color: #fff;
   color: #000 !important;
 }
