@@ -1,0 +1,51 @@
+{
+   "NorthernVictoriaLand": [{
+         "McMurdoDryValleys": [{
+            "AsgardRange": [{
+                  "MtNewall": ["lat", "lon"],
+                  "RoundMtn": ["lat", "lon"],
+            }],
+               "FerrarGlacier": [{
+                  "KukriHills":["lat", "lon"],
+                  "BriggsHills": ["lat", "lon"],
+                  "ThomasHeights": ["lat", "lon"],
+            }],
+               "KukriHills": [{
+                  "MtCoates":["lat", "lon"],
+            }],
+               "QuartermainMountains": [{
+                  "BeaconValley": ["lat", "lon"],
+                  "PivotPeak": ["lat", "lon"],
+            }],
+               "RoyalSocietyRange": [{
+                  "GarwoodValley": ["lat", "lon"],
+                  "MiersValley": ["lat", "lon"],
+                  "HealdIsland": ["lat", "lon"],
+                  "BlueGlacier": ["lat", "lon"],
+                  "MtRucker": ["lat", "lon"],
+                  "TroughLake": ["lat", "lon"],
+                  "MtHuggins": ["lat", "lon"],
+                  "TheSpire": ["lat", "lon"],
+                  "TableMountain": ["lat", "lon"],
+            }],
+               "TaylorGlacier": [{
+                  "NorthwestMtn": ["lat", "lon"],
+            }],
+               "TaylorValley": [{
+                  "NorthwestMtn": ["lat", "lon"],
+                  "NewHarbor": ["lat", "lon"],
+                  "FryxellBasin": ["lat", "lon"],
+                  "KukriHills": ["lat", "lon"],
+                  "HoareBasin": ["lat", "lon"],
+                  "HeadMtns": ["lat", "lon"],
+                  "ApocalypsePeaks": ["lat", "lon"],
+                  "ShapelessMtn": ["lat", "lon"],
+                  "MtFleming": ["lat", "lon"],
+                  }
+               ]
+            }
+         ]
+      }
+   ],
+   "ShackletonGlacier": ["lat", "lon"],
+}
