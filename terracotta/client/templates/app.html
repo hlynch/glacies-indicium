@@ -257,7 +257,11 @@
       defer
     ></script>
     <script type="text/javascript">
-      window.onload = initializeApp.bind(null, '{{ hostname }}');
+      window.onload = initializeApp.bind(
+        null,
+        '{{ hostname }}',
+        '{{ regions|tojson|safe }}'
+      );
     </script>
   </body>
 </html>

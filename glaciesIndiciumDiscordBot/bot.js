@@ -1,75 +1,94 @@
-/* fetch('https://www.reddit.com/r/aww.json?limit=100&?sort=top&t=all')
-  .then((res) => res.json())
-  .then((res) => res.data.children)
-  .then((res) =>
-    res.map((post) => ({
-      author: post.data.author,
-      link: post.data.url,
-      img:
-        typeof post.data.preview !== 'undefined'
-          ? post.data.preview.images[0].source.url
-          : null,
-      title: post.data.title,
-    }))
-  )
-  .then((res) => res.map(render))
-  .then((res) => console.log(res));
+'use strict';
+const Discord = require('discord.js');
+var snoowrap = require('snoowrap');
+const client = new Discord.Client();
+const prefix = '!';
 
-const render = (post) => {
-  const node = document.createElement('div');
-  node.innerHTML = `
-        <a href="${post.link}">
-          <img src="${post.img}"/>
-        </a>`;
-  document.getElementById('app').appendChild(node);
-  return post;
-};
+client.on('ready', () => {
+  client.on('message', (message) => {
+    if (message.author.bot) return;
 
-function postRandomCutie(urls) {
-  const randomURL = urls[Math.floor(Math.random() * urls.length) + 1];
-  /* const embed = new Discord.RichEmbed({
-    image: {
-      url: randomURL,
-    },
-  }); 
-  console.log(randomURL);
-} */
+    const args = message.content.slice(prefix.length).trim().split(' ');
+    const command = args.shift().toLowerCase();
 
-function getCuteAnimals() {
-  fetch('https://www.reddit.com/r/aww.json?limit=100&?sort=top&t=all')
-    .then((res) => res.json())
-    .then((res) => res.data.children)
-    .then((res) =>
-      res.map((post) => ({
-        author: post.data.author,
-        link: post.data.url,
+    if (command === 'ping') {
+      message.channel.send('Pong.');
+    } else if (command === 'beep') {
+      message.channel.send('Boop.');
+    } else if (command === 'server') {
+      message.channel.send(
+        `Server name: ${message.guild.name}\nTotal members: ${message.guild.memberCount}`
+      );
+    } else if (command === 'user-info') {
+      message.channel.send(
+        `Your username: ${message.author.username}\nYour ID: ${message.author.id}`
+      );
+    } else if (command === 'reddit') {
+      getRedditPost(message);
+    }
+  });
+
+  console.log('ready');
+});
+
+/** Sends message on Mondays at 2:30PM, Wednesdays at 3:30PM, and Fridays at 1:00PM */
+let timer = setInterval(function () {
+  const now = new Date();
+
+  if (now.getDay() == 1) {
+    if (now.getUTCHours() - 7 == 14 && now.getUTCMinutes() == 30) {
+      client.channels
+        .get(process.env.CHANNEL_ID)
+        .send('@everyone See you guys in one hour!');
+    }
+  } else if (now.getDay() === 3) {
+    if (now.getUTCHours() - 7 == 15 && now.getUTCMinutes() == 30) {
+      client.channels
+        .get(process.env.CHANNEL_ID)
+        .send('@everyone See you guys in one hour!');
+    }
+  } else if (now.getDay() === 5) {
+    if (now.getUTCHours() - 7 == 13 && now.getUTCMinutes() == 0) {
+      client.channels
+        .get(process.env.CHANNEL_ID)
+        .send('@everyone See you guys in one hour!');
+    }
+  }
+}, 60 * 1000);
+
+function getRedditPost(messageObject) {
+  const r = new snoowrap({
+    userAgent: 'GlaciesIndiciumDiscordBot/1.0 by Me',
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    refreshToken: process.env.REFRESH_TOKEN,
+  });
+
+  r.getTop('aww', { time: 'all', limit: 100 })
+    .then((posts) =>
+      posts.map((post) => ({
+        author: post.author,
+        link: post.url,
+        redditLink: 'https://www.reddit.com' + post.permalink,
         img:
-          typeof post.data.preview !== 'undefined'
-            ? post.data.preview.images[0].source.url
+          typeof post.preview !== 'undefined'
+            ? post.preview.images[0].source.url
             : null,
-        title: post.data.title,
+        title: post.title,
       }))
     )
-    .then((res) => getRandomPost(res));
+    .then((allPosts) => sendRandomPost(messageObject, allPosts));
 }
 
-function getRandomPost(posts) {
-  const randomURL = posts[Math.floor(Math.random() * posts.length) + 1];
+function sendRandomPost(messageObject, posts) {
+  const randomPost = posts[Math.floor(Math.random() * posts.length) + 1];
 
-  /* const embed = new Discord.RichEmbed({
-    image: {
-      url: randomURL,
-    },
-  }); */
+  const newEmbededPost = new Discord.MessageEmbed()
+    .setTitle('Title: ' + randomPost.title)
+    .setURL(randomPost.redditLink)
+    .setImage(randomPost.img);
 
-  const embed = randomURL.img;
-  const node = document.createElement('div');
-  node.innerHTML = `
-       
-          <img src="${embed}"/>`;
-
-  document.getElementById('app').appendChild(node);
-  console.log(embed);
+  messageObject.channel.send(newEmbededPost);
 }
 
-getCuteAnimals();
+client.login(process.env.BOT_TOKEN);

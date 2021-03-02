@@ -76,169 +76,9 @@ const STATE = {
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
   driveFiles: [],
+  regions: [],
   m_pos: 0,
 };
-
-/**
- * Current hardcoded list of regions/ids
- * TODO: Dynamically create this list and store as JSON file
- */
-const json = [
-  {
-    name: 'Northern Victoria Land',
-    id: 1,
-    subregions: [
-      {
-        name: 'Asgard Range',
-        id: 2,
-        subregions: [
-          {
-            name: 'Mt. Newall',
-            id: 3,
-          },
-          {
-            name: 'Round Mountain',
-            id: 4,
-          },
-        ],
-      },
-      {
-        name: 'Ferrar Glacier',
-        id: 5,
-        subregions: [
-          {
-            name: 'Kukri Hills',
-            id: 6,
-          },
-          {
-            name: 'Briggs Hills',
-            id: 7,
-          },
-          {
-            name: 'Thomas Heights',
-            id: 8,
-          },
-        ],
-      },
-      {
-        name: 'Kukri Hills',
-        id: 9,
-        subregions: [
-          {
-            name: 'Mt Coates',
-            id: 10,
-          },
-        ],
-      },
-      {
-        name: 'Quartermain Mountain',
-        id: 11,
-        subregions: [
-          {
-            name: 'Beacon Valley',
-            id: 12,
-          },
-          {
-            name: 'Pivot Peak',
-            id: 13,
-          },
-        ],
-      },
-      {
-        name: 'Royal Society Range',
-        id: 14,
-        subregions: [
-          {
-            name: 'Garwood Valley',
-            id: 15,
-          },
-          {
-            name: 'Miers Valley',
-            id: 16,
-          },
-          {
-            name: 'Heald Island',
-            id: 17,
-          },
-          {
-            name: 'Blue Glacier',
-            id: 18,
-          },
-          {
-            name: 'Mt. Rucker',
-            id: 19,
-          },
-          {
-            name: 'Trough Lake',
-            id: 20,
-          },
-          {
-            name: 'Mt. Huggins',
-            id: 21,
-          },
-          {
-            name: 'The Spire',
-            id: 22,
-          },
-          {
-            name: 'Table Mountain',
-            id: 23,
-          },
-        ],
-      },
-      {
-        name: 'Taylor Glacier',
-        id: 24,
-        subregions: [{ name: 'Northwest Mountain', id: 25 }],
-      },
-      {
-        name: 'Taylor Valley',
-        id: 26,
-        subregions: [
-          {
-            name: 'Northwest Mountain',
-            id: 27,
-          },
-          {
-            name: 'New Harbor',
-            id: 28,
-          },
-          {
-            name: 'Fryxell Basin',
-            id: 29,
-          },
-          {
-            name: 'Kukri Hills',
-            id: 30,
-          },
-          {
-            name: 'Hoare Basin',
-            id: 31,
-          },
-        ],
-      },
-      {
-        name: 'Willett Range',
-        id: 32,
-        subregions: [
-          { name: 'Head Mountains', id: 33 },
-          { name: 'Apocolypse Peaks', id: 34 },
-          { name: 'Shapeles Mountain', id: 35 },
-        ],
-      },
-      {
-        name: 'Wright Valley',
-        id: 36,
-        subregions: [
-          {
-            name: 'Mt. Fleming',
-            id: 37,
-          },
-        ],
-      },
-    ],
-  },
-];
 
 // ===================================================
 // Convenience functions to get valid Terracotta URLs.
@@ -443,7 +283,14 @@ function getSelectedBandLayer(radioButtons) {
   );
 
   httpGet(datasetURL).then((res) => {
-    updateSinglebandLayer([res.datasets[0].region, res.datasets[0].band]);
+    const firstResult = res.datasets[0];
+    let resultMetadata = [];
+
+    STATE.keys.forEach((bandKey) => {
+      resultMetadata.push(firstResult[bandKey.key]);
+    });
+
+    updateSinglebandLayer(resultMetadata);
   });
 }
 
@@ -457,20 +304,7 @@ function resetRadioButtons() {
 }
 
 /**
- * Check for current theme when page is loaded
- */
-function getTheme() {
-  if (localStorage.getItem('theme') === 'theme-dark') {
-    setTheme('theme-dark');
-    document.getElementById('dark-mode-toggle').checked = false;
-  } else {
-    setTheme('theme-light');
-    document.getElementById('dark-mode-toggle').checked = true;
-  }
-}
-
-/**
- *  Initializes the API client library and retreives all files in the Drive.
+ *  Initializes the Google API client library and retreives all files in the Drive.
  */
 function initClient() {
   var CLIENT_ID =
@@ -659,7 +493,7 @@ function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
   } else {
     next_page_button.disabled = false;
   }
-  buildRegionTree(json, datasets, datasetTable);
+  buildRegionTree(STATE.regions, datasets, datasetTable);
   addListMargin();
 }
 
@@ -749,6 +583,7 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
   if (!ds_keys || compareArray(currentKeys, ds_keys)) {
     return;
   }
+
   const fileName = 'WV02_' + ds_keys[0] + '_ds_' + ds_keys[1] + '.tif';
 
   let fileDownloadLink = getFileDownloadLink(fileName);
@@ -924,26 +759,6 @@ function updateMetadataText(metadata) {
 }
 
 /**
- *  Update webpage theme in browser
- */
-function setTheme(themeName) {
-  localStorage.setItem('theme', themeName);
-  document.body.className = themeName;
-}
-
-/**
- * Toggle between light and dark theme
- */
-function toggleTheme() {
-  if (localStorage.getItem('theme') === 'theme-dark') {
-    setTheme('theme-light');
-  } else {
-    setTheme('theme-dark');
-  }
-  halfmoon.toggleDarkMode();
-}
-
-/**
  *  Called in app.html on Details info toggle
  * @global
  */
@@ -1023,15 +838,18 @@ function resize(e) {
  * @param {Object} dataset
  */
 function createMetadataArray(region, dataset) {
-  let newArray = [];
-  newArray.push(dataset[region.id].region);
-  newArray.push(dataset[region.id].band);
+  let currentRegionMetaData = [];
+  const currentDataset = dataset[region.id];
 
-  httpGet(assembleMetadataURL(STATE.remote_host, newArray)).then((metadata) =>
-    storeMetadata(metadata)
-  );
+  STATE.keys.forEach((bandKey) => {
+    currentRegionMetaData.push(currentDataset[bandKey.key]);
+  });
 
-  return newArray;
+  httpGet(
+    assembleMetadataURL(STATE.remote_host, currentRegionMetaData)
+  ).then((metadata) => storeMetadata(metadata));
+
+  return currentRegionMetaData;
 }
 
 /**
@@ -1080,11 +898,9 @@ function getAllFiles() {
     .then(function (response) {
       var files = response.result.files;
 
-      if (files && files.length > 0) {
-        STATE.driveFiles = files;
-      } else {
-        console.log('No files found.');
-      }
+      files.length > 0
+        ? (STATE.driveFiles = files)
+        : console.log('No files found.');
     });
 }
 
@@ -1108,13 +924,16 @@ function getFileDownloadLink(filename) {
  * @param {string} hostname The hostname of the remote Terracotta server (evaluated in map.html).
  * @global
  */
-function initializeApp(hostname) {
+function initializeApp(hostname, regions) {
   // sanitize hostname
   if (hostname.charAt(hostname.length - 1) === '/') {
     hostname = hostname.slice(0, hostname.length - 1);
   }
 
+  let regionArray = [];
+  regionArray.push(JSON.parse(regions));
   STATE.remote_host = hostname;
+  STATE.regions = regionArray;
 
   getColormapValues(hostname)
     .then(() => getKeys(hostname))
@@ -1122,50 +941,6 @@ function initializeApp(hostname) {
       STATE.keys = keys;
       initUI(hostname, keys);
       updateSearchResults();
-
-      /* This is commented out as new tile layers will not display over this one. 
-        TODO: Make 3031 projection work with Leaflet 
-      const EPSG3031 = new L.Proj.CRS(
-        'EPSG:3031',
-        '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs',
-        {
-          origin: [-4194304, 4194304],
-          resolutions: [8192.0, 4096.0, 2048.0, 1024.0, 512.0, 256.0],
-          bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
-        }
-      );
-
-      const southWest = L.latLng(-38.94137277935882, -135);
-      const northEast = L.latLng(-38.94137277935882, 45);
-
-      const nasaAttrib =
-        "Data Source &copy; <a href='https://www.comnap.aq/SitePages/Home.aspx' target='_blank'>" +
-        "COMNAP</a><br>Base Map &copy; <a href='https://wiki.earthdata.nasa.gov/display/GIBS' target='_blank'>" +
-        'NASA EOSDIS GIBS</a>';
-      const nasaUrl =
-        'https://gibs-{s}.earthdata.nasa.gov' +
-        '/wmts/epsg3031/best/' +
-        '{layer}/default/{date}/{tileMatrixSet}/{z}/{y}/{x}.{format}';
-
-      const blueMarble = new L.tileLayer(nasaUrl, {
-        attribution: nasaAttrib,
-        tileSize: 512,
-        layer: 'BlueMarble_ShadedRelief_Bathymetry',
-        tileMatrixSet: '500m',
-        subdomains: 'abc',
-        date: new Date().toISOString().substr(0, 10),
-        format: 'jpg',
-        zIndex: 1,
-      });
-      STATE.map = new L.Map('map', {
-        crs: EPSG3031,
-        minZoom: 0.48,
-        maxZoom: 4,
-        layers: [blueMarble],
-      });
-
-      STATE.map.setView(new L.LatLng(-90, 0), 0);
-      */
       let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
       let osmAttrib =
         'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
@@ -1191,7 +966,7 @@ function handleClientLoad() {
  * @param {Object} googleUser
  */
 function onSuccess(googleUser) {
-  getAllFiles();
+  initClient();
   const currentUsername = googleUser.getBasicProfile().getName();
 
   console.log(`Logged in as: ${currentUsername}`);
