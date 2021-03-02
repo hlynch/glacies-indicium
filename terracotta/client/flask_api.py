@@ -8,13 +8,13 @@ client_api = Blueprint('client_api', 'terracotta.client')
 
 @client_api.route('/', methods=['GET'])
 def get_map() -> Any:
-    regions = getRegionHeirarchy()
+    regions = getRegionHierarchy()
     return render_template(
         'app.html', hostname=current_app.config['terracotta_hostname'], regions=regions
     )
 
 
-def getRegionHeirarchy():
+def getRegionHierarchy():
     filename = os.path.join(current_app.static_folder, 'data', 'regions.json')
     with open(filename) as region_file:
         data = json.load(region_file)
