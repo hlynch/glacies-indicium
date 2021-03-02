@@ -409,6 +409,8 @@ function initUI(remote_host, keys) {
 
   radioButtons.forEach((radioButton) => {
     radioButton.addEventListener('change', () => {
+      $('#clear-button').toggleClass('d-inline-block');
+      $('#clear-button').toggleClass('d-none');
       getSelectedBandLayer(radioButtons);
     });
   });
@@ -429,7 +431,7 @@ function getSelectedBandLayer(radioButtons) {
 
   let keys = [];
 
-  const currentRegion = $('.active').attr('id');
+  const currentRegion = $('#search-results .text-primary').attr('id');
   keys.push({ key: 'region', value: selectedBands[0] });
   keys.push({ key: 'band', value: currentRegion || '2' });
 
@@ -446,15 +448,24 @@ function getSelectedBandLayer(radioButtons) {
 }
 
 /**
+ * Reset the radio buttons
+ */
+function resetRadioButtons() {
+  $('input[name=bandListItem]').prop('checked', false);
+  $('#clear-button').toggleClass('d-none');
+  $('#clear-button').toggleClass('d-inline-block');
+}
+
+/**
  * Check for current theme when page is loaded
  */
 function getTheme() {
   if (localStorage.getItem('theme') === 'theme-dark') {
     setTheme('theme-dark');
-    document.getElementById('slider').checked = false;
+    document.getElementById('dark-mode-toggle').checked = false;
   } else {
     setTheme('theme-light');
-    document.getElementById('slider').checked = true;
+    document.getElementById('dark-mode-toggle').checked = true;
   }
 }
 
@@ -649,14 +660,14 @@ function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
     next_page_button.disabled = false;
   }
   buildRegionTree(json, datasets, datasetTable);
-  removeListMargin();
+  addListMargin();
 }
 
 /**
- * Finds the first list element and removes margin to reduce whitespace.
+ * Finds the first list element and add margin to increase whitespace.
  */
-function removeListMargin() {
-  $('ul:eq(1)').addClass('margin-left-none');
+function addListMargin() {
+  $('#search-results ul:eq(0)').addClass('ml-20');
 }
 
 /**
@@ -739,7 +750,8 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
     return;
   }
   const fileName = 'WV02_' + ds_keys[0] + '_ds_' + ds_keys[1] + '.tif';
-  const fileDownloadLink = getFileDownloadLink(fileName);
+
+  let fileDownloadLink = getFileDownloadLink(fileName);
   updateExportButtonLink(fileDownloadLink);
 
   updateSinglebandLayer(ds_keys, resetView);
@@ -784,9 +796,9 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
     layer: L.tileLayer(layer_url).addTo(STATE.map),
   };
 
-  $('.active').removeClass('active');
+  $('#search-results .text-primary').removeClass('text-primary');
   const dataset_layer = document.getElementById(`${layer_id}`);
-  dataset_layer.classList.add('active');
+  dataset_layer.classList.add('text-primary');
 
   if (resetView && metadata) {
     const screen = STATE.map.getBounds();
@@ -874,7 +886,7 @@ function updateComputedUrl(url, keys = null) {
     layerInfoParent.style.display = 'block';
     computedUrl.parentElement.style.display = 'block';
   }
-  computedUrl.innerHTML = `<b class="bold">current XYZ URL - </b>${url}`;
+  computedUrl.innerHTML = `<span class="bold text-primary">current XYZ URL - </span>${url}`;
   let metadata = null;
   if (keys != null) {
     metadata = STATE.dataset_metadata[serializeKeys(keys)];
@@ -893,7 +905,8 @@ function updateMetadataText(metadata) {
     return;
   }
   metadataField.style.display = 'block';
-  metadataField.innerHTML = '<b class="bold">current metadata -</b> ';
+  metadataField.innerHTML =
+    '<span class="bold text-primary">current metadata -</span> ';
   if (metadata.mean)
     metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
   if (metadata.range)
@@ -927,6 +940,7 @@ function toggleTheme() {
   } else {
     setTheme('theme-dark');
   }
+  halfmoon.toggleDarkMode();
 }
 
 /**
@@ -1006,7 +1020,7 @@ function resize(e) {
 /**
  * Retrieve and strore metadata values for current region
  * @param {JSON} region
- * @param {JSON} dataset
+ * @param {Object} dataset
  */
 function createMetadataArray(region, dataset) {
   let newArray = [];
@@ -1162,8 +1176,6 @@ function initializeApp(hostname) {
         layers: [osmBase],
       });
     });
-  addResizeListeners();
-  getTheme();
 }
 
 /**
@@ -1175,9 +1187,15 @@ function handleClientLoad() {
 
 /**
  * Logs when user successfully signs into Google.
+ *
+ * @param {Object} googleUser
  */
 function onSuccess(googleUser) {
-  console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+  getAllFiles();
+  const currentUsername = googleUser.getBasicProfile().getName();
+
+  console.log(`Logged in as: ${currentUsername}`);
+  toggleDropdownInformation(currentUsername);
 }
 
 /**
@@ -1185,4 +1203,29 @@ function onSuccess(googleUser) {
  */
 function onFailure(error) {
   console.log(error);
+}
+
+/**
+ * Logs out the current user
+ */
+function signOut() {
+  let auth2 = gapi.auth2.getAuthInstance();
+  auth2.signOut().then(function () {
+    console.log('User signed out.');
+  });
+  toggleDropdownInformation();
+}
+
+/**
+ * Toggles text within user profile dropdown
+ *
+ * @param {string} currentUsername
+ */
+function toggleDropdownInformation(currentUsername) {
+  $('#currentUser').html() === 'Sign in'
+    ? $('#currentUser').html('Welcome, ' + currentUsername)
+    : $('#currentUser').html('Sign in');
+
+  $('#signin2').toggleClass('d-none');
+  $('#sign-out-button').toggleClass('d-none');
 }

@@ -1,43 +1,75 @@
-const Discord = require('discord.js');
+/* fetch('https://www.reddit.com/r/aww.json?limit=100&?sort=top&t=all')
+  .then((res) => res.json())
+  .then((res) => res.data.children)
+  .then((res) =>
+    res.map((post) => ({
+      author: post.data.author,
+      link: post.data.url,
+      img:
+        typeof post.data.preview !== 'undefined'
+          ? post.data.preview.images[0].source.url
+          : null,
+      title: post.data.title,
+    }))
+  )
+  .then((res) => res.map(render))
+  .then((res) => console.log(res));
 
-const client = new Discord.Client();
+const render = (post) => {
+  const node = document.createElement('div');
+  node.innerHTML = `
+        <a href="${post.link}">
+          <img src="${post.img}"/>
+        </a>`;
+  document.getElementById('app').appendChild(node);
+  return post;
+};
 
-client.on('ready', () => {
-  /* client.channels
-    .get('812823537953538091')
-    .send('Welcome, I will now remind everyone every week!'); * /
-});
-*/
-client.on('message', (message) => {
-  if (message.content === 'ping') {
-    message.reply('pong');
-  }
-  console.log('ready');
-});
+function postRandomCutie(urls) {
+  const randomURL = urls[Math.floor(Math.random() * urls.length) + 1];
+  /* const embed = new Discord.RichEmbed({
+    image: {
+      url: randomURL,
+    },
+  }); 
+  console.log(randomURL);
+} */
 
-/** Sends message on Mondays at 2:30PM, Wednesdays at 3:30PM, and Fridays at 1:00PM */
-let timer = setInterval(function () {
-  const now = new Date();
+function getCuteAnimals() {
+  fetch('https://www.reddit.com/r/aww.json?limit=100&?sort=top&t=all')
+    .then((res) => res.json())
+    .then((res) => res.data.children)
+    .then((res) =>
+      res.map((post) => ({
+        author: post.data.author,
+        link: post.data.url,
+        img:
+          typeof post.data.preview !== 'undefined'
+            ? post.data.preview.images[0].source.url
+            : null,
+        title: post.data.title,
+      }))
+    )
+    .then((res) => getRandomPost(res));
+}
 
-  if (now.getDay() == 1) {
-    if (now.getUTCHours() - 7 == 14 && now.getUTCMinutes() == 30) {
-      client.channels
-        .get('812823537953538091')
-        .send('@everyone See you guys in one hour!');
-    }
-  } else if (now.getDay() === 3) {
-    if (now.getUTCHours() - 7 == 15 && now.getUTCMinutes() == 30) {
-      client.channels
-        .get('812823537953538091')
-        .send('@everyone See you guys in one hour!');
-    }
-  } else if (now.getDay() === 5) {
-    if (now.getUTCHours() - 7 == 13 && now.getUTCMinutes() == 0) {
-      client.channels
-        .get('812823537953538091')
-        .send('@everyone See you guys in one hour!');
-    }
-  }
-}, 60 * 1000);
+function getRandomPost(posts) {
+  const randomURL = posts[Math.floor(Math.random() * posts.length) + 1];
 
-client.login(process.env.BOT_TOKEN);
+  /* const embed = new Discord.RichEmbed({
+    image: {
+      url: randomURL,
+    },
+  }); */
+
+  const embed = randomURL.img;
+  const node = document.createElement('div');
+  node.innerHTML = `
+       
+          <img src="${embed}"/>`;
+
+  document.getElementById('app').appendChild(node);
+  console.log(embed);
+}
+
+getCuteAnimals();
