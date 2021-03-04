@@ -47,7 +47,7 @@ const singlebandStretchProxy = (arr) =>
     },
   });
 
-const DATASETS_PER_PAGE = 16;
+const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
   { display_name: 'Greyscale', id: 'greys_r' },
@@ -76,7 +76,6 @@ const STATE = {
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
   driveFiles: [],
-  regions: [],
   m_pos: 0,
 };
 
@@ -245,18 +244,35 @@ function getColormapValues(remote_host, num_values = 100) {
  * @param {Array<Terracotta.IKey>} keys
  */
 function initUI(remote_host, keys) {
-  const radioButtons = document.querySelectorAll('input[type=radio]');
-
-  radioButtons.forEach((radioButton) => {
-    radioButton.addEventListener('change', () => {
-      $('#clear-button').toggleClass('d-inline-block');
-      $('#clear-button').toggleClass('d-none');
-      getSelectedBandLayer(radioButtons);
-    });
+  httpGet('/getJsonFile/bandNames').then((result) => {
+    createBandInputs(result);
   });
 
   resetLayerState();
   removeSpinner();
+}
+
+/**
+ * Creates a new input for each availible GeoTiff band
+ *
+ * @param {Array} bandNames
+ */
+function createBandInputs(bandNames) {
+  bandNames.forEach((band) => {
+    let radioButtonContainer = document.createElement('div');
+    radioButtonContainer.classList.add('custom-radio');
+    radioButtonContainer.classList.add('mb-10');
+
+    let bandRadioButon = createNewRadioButton(band);
+    let radioButtonLabel = createNewInputLabel(band['name'], band['name']);
+
+    radioButtonContainer.appendChild(bandRadioButon);
+    radioButtonContainer.appendChild(radioButtonLabel);
+
+    $('#key-list').append(radioButtonContainer);
+  });
+
+  addRadioButtonListeners();
 }
 
 /**
@@ -464,8 +480,8 @@ function updateSearchResults(
   const datasetUrl = assembleDatasetURL(
     STATE.remote_host,
     key_constraints,
-    1000,
-    0
+    DATASETS_PER_PAGE,
+    STATE.current_dataset_page
   );
 
   return httpGet(datasetUrl).then((res) => {
@@ -493,7 +509,11 @@ function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
   } else {
     next_page_button.disabled = false;
   }
-  buildRegionTree(STATE.regions, datasets, datasetTable);
+
+  httpGet('/getJsonFile/regions').then((data) => {
+    buildRegionTree(data, datasets, datasetTable);
+  });
+
   addListMargin();
 }
 
@@ -587,7 +607,7 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
   const fileName = 'WV02_' + ds_keys[0] + '_ds_' + ds_keys[1] + '.tif';
 
   let fileDownloadLink = getFileDownloadLink(fileName);
-  updateExportButtonLink(fileDownloadLink);
+  //updateExportButtonLink(fileDownloadLink);
 
   updateSinglebandLayer(ds_keys, resetView);
 }
@@ -596,12 +616,14 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
  * Update the download link to be the current file set.
  * @param {string} fileDownloadLink
  */
-function updateExportButtonLink(fileDownloadLink) {
-  $('#exportButton').attr('href', fileDownloadLink);
+function updateExportButtonLink(ds_keys) {
+  $('#exportButton').attr(
+    'href',
+    `/getFile?band_id=${ds_keys[0]},region_id=${ds_keys[1]}`
+  );
 }
-
 /**
- * Switch current active layer to the given singleband dataset.
+ * Switch current active layer to the given singleband dataset.bhgn mj,
  *
  * @param {Array<string>} ds_keys Keys of new layer
  * @param {boolean} resetView Fly to new dataset if not already on screen
@@ -872,6 +894,53 @@ function createListElement(content, metadata) {
 }
 
 /**
+ * Creates a new input of type radio
+ *
+ * @param {Object} inputContent
+ */
+function createNewRadioButton(inputContent) {
+  let newRadioButton = document.createElement('input');
+  newRadioButton.setAttribute('type', 'radio');
+  newRadioButton.setAttribute('value', '9143');
+  newRadioButton.setAttribute('id', inputContent['name']);
+  newRadioButton.setAttribute(
+    'name',
+    inputContent['groupName'] ? inputContent['groupName'] : 'bandRadioButon'
+  );
+
+  return newRadioButton;
+}
+
+/**
+ * Creates a new label for a specific input element
+ *
+ * @param {string} inputName
+ * @param {string} labelContent
+ */
+function createNewInputLabel(inputName, labelContent) {
+  let newInputLabel = document.createElement('label');
+  newInputLabel.setAttribute('for', inputName);
+  newInputLabel.innerHTML = labelContent;
+
+  return newInputLabel;
+}
+
+/**
+ * Add an event listener to each band input to toggle a new layer
+ */
+function addRadioButtonListeners() {
+  const radioButtons = document.querySelectorAll('input[type=radio]');
+
+  radioButtons.forEach((radioButton) => {
+    radioButton.addEventListener('change', () => {
+      $('#clear-button').toggleClass('d-inline-block');
+      $('#clear-button').toggleClass('d-none');
+      getSelectedBandLayer(radioButtons);
+    });
+  });
+}
+
+/**
  * Display Google Sign in button and listen for changes.
  */
 function renderButton() {
@@ -924,17 +993,13 @@ function getFileDownloadLink(filename) {
  * @param {string} hostname The hostname of the remote Terracotta server (evaluated in map.html).
  * @global
  */
-function initializeApp(hostname, regions) {
+function initializeApp(hostname) {
   // sanitize hostname
   if (hostname.charAt(hostname.length - 1) === '/') {
     hostname = hostname.slice(0, hostname.length - 1);
   }
 
-  let regionArray = [];
-  regionArray.push(JSON.parse(regions));
   STATE.remote_host = hostname;
-  STATE.regions = regionArray;
-
   getColormapValues(hostname)
     .then(() => getKeys(hostname))
     .then((keys) => {
@@ -951,6 +1016,21 @@ function initializeApp(hostname, regions) {
         layers: [osmBase],
       });
     });
+
+  $('#exportButton').click((element) => {
+    console.log('here');
+    const currentRegion = STATE.activeSinglebandLayer
+      ? serializeKeys(STATE.activeSinglebandLayer['keys'])
+      : undefined;
+
+    currentRegion
+      ? $.post('/exportFile', { regionId: currentRegion }).done((data) => {
+          console.log(data);
+          // $('#exportButton').attr('href', data);
+          window.open(data, '_blank');
+        })
+      : console.log('no file found');
+  });
 }
 
 /**

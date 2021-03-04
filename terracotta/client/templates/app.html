@@ -161,7 +161,7 @@
           Reset
         </button>
         <div id="key-list">
-          <div class="custom-radio mb-10">
+          <!-- <div class="custom-radio mb-10">
             <input type="radio" name="bandListItem" id="band1" value="9143" />
             <label for="band1">Band 1</label>
           </div>
@@ -176,7 +176,7 @@
           <div class="custom-radio mb-10">
             <input type="radio" name="bandListItem" id="band4" value="9143" />
             <label for="band4">Band 4</label>
-          </div>
+          </div> -->
         </div>
       </div>
       <hr />
@@ -257,11 +257,7 @@
       defer
     ></script>
     <script type="text/javascript">
-      window.onload = initializeApp.bind(
-        null,
-        '{{ hostname }}',
-        '{{ regions|tojson|safe }}'
-      );
+      window.onload = initializeApp.bind(null, '{{ hostname }}');
     </script>
   </body>
 </html>
