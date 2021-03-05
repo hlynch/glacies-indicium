@@ -52,39 +52,7 @@
   </head>
   <body data-set-preferred-mode-onload="true">
     <div id="controls" class="container-fluid list overflow-y-scroll">
-      <div id="top-controls" class="d-flex d-flex justify-content-between">
-        <div class="dropdown">
-          <button
-            class="btn"
-            data-toggle="dropdown"
-            type="button"
-            id="dropdown-toggle-btn-1"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            <i class="fa fa-user" aria-hidden="true"></i>
-            <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
-          </button>
-          <div class="dropdown-menu" aria-labelledby="dropdown-toggle-btn-1">
-            <h6 class="dropdown-header">
-              <span id="currentUser">Sign in</span>
-            </h6>
-            <a id="preferences" class="dropdown-item">
-              <i class="fa fa-cog" aria-hidden="true"></i> Preferences
-            </a>
-            <div class="dropdown-content">
-              <div class="pt-5" id="signin2" data-onsuccess="onSignIn"></div>
-              <button
-                class="btn btn-danger d-none"
-                id="sign-out-button"
-                type="button"
-                onclick="signOut()"
-              >
-                <i class="fa fa-sign-out" aria-hidden="true"></i>Logout
-              </button>
-            </div>
-          </div>
-        </div>
+      <div id="top-controls" class="d-flex d-flex justify-content-end">
         <div class="modal" id="preferencesModule" tabindex="-1" role="dialog">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -146,12 +114,12 @@
           <b>host: </b> <span id="details__host--url">{{ hostname }}</span>
         </p>
       </div>
-
       <hr />
+
       <div id="widget"></div>
 
       <div class="el-wrapper">
-        <h2 class="content-title d-inline-block">Band keys</h2>
+        Band keys
         <button
           class="btn btn-danger d-none"
           id="clear-button"
@@ -160,24 +128,7 @@
         >
           Reset
         </button>
-        <div id="key-list">
-          <!-- <div class="custom-radio mb-10">
-            <input type="radio" name="bandListItem" id="band1" value="9143" />
-            <label for="band1">Band 1</label>
-          </div>
-          <div class="custom-radio mb-10">
-            <input type="radio" name="bandListItem" id="band2" value="9143" />
-            <label for="band2">Band 2</label>
-          </div>
-          <div class="custom-radio mb-10">
-            <input type="radio" name="bandListItem" id="band3" value="9143" />
-            <label for="band3">Band 3</label>
-          </div>
-          <div class="custom-radio mb-10">
-            <input type="radio" name="bandListItem" id="band4" value="9143" />
-            <label for="band4">Band 4</label>
-          </div> -->
-        </div>
+        <div id="key-list"></div>
       </div>
       <hr />
       <div class="el-wrapper border-none mb-10 p-5" id="regionList">
@@ -244,18 +195,6 @@
     </aside>
 
     <script src="{{ url_for('static', filename='halfmoon.js') }}"></script>
-    <script
-      async
-      defer
-      src="https://apis.google.com/js/api.js"
-      onload="this.onload=function(){};handleClientLoad()"
-      onreadystatechange="if (this.readyState === 'complete') this.onload()"
-    ></script>
-    <script
-      src="https://apis.google.com/js/platform.js?onload=renderButton"
-      async
-      defer
-    ></script>
     <script type="text/javascript">
       window.onload = initializeApp.bind(null, '{{ hostname }}');
     </script>

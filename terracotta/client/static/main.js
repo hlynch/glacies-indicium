@@ -320,35 +320,6 @@ function resetRadioButtons() {
 }
 
 /**
- *  Initializes the Google API client library and retreives all files in the Drive.
- */
-function initClient() {
-  var CLIENT_ID =
-    '975982665680-97lcqjf10qv490i6424p0slg93gl3qv4.apps.googleusercontent.com';
-  var API_KEY = 'AIzaSyDDEkuJal1ZlOYbGfErEeUiTZsDSPEDXV8';
-  var DISCOVERY_DOCS = [
-    'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
-  ];
-
-  var SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly';
-  gapi.client
-    .init({
-      apiKey: API_KEY,
-      clientId: CLIENT_ID,
-      discoveryDocs: DISCOVERY_DOCS,
-      scope: SCOPES,
-    })
-    .then(
-      () => {
-        getAllFiles();
-      },
-      (error) => {
-        console.log(JSON.stringify(error, null, 2));
-      }
-    );
-}
-
-/**
  * Parses json list of regions and creates nested menu
  * @param {JSON} regions
  * @param {HTML Element} container
@@ -356,6 +327,7 @@ function initClient() {
 function buildRegionTree(regions, dataset, container) {
   regions.forEach((region) => {
     let metadataArray = createMetadataArray(region, dataset);
+    console.log(metadataArray);
     let listRoot = document.createElement('ul');
     let newListElement = createListElement(region, metadataArray);
     listRoot.appendChild(newListElement);
@@ -606,22 +578,19 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
 
   const fileName = 'WV02_' + ds_keys[0] + '_ds_' + ds_keys[1] + '.tif';
 
-  let fileDownloadLink = getFileDownloadLink(fileName);
-  //updateExportButtonLink(fileDownloadLink);
-
+  updateExportButtonLink(fileName);
   updateSinglebandLayer(ds_keys, resetView);
 }
 
 /**
  * Update the download link to be the current file set.
+ *
  * @param {string} fileDownloadLink
  */
-function updateExportButtonLink(ds_keys) {
-  $('#exportButton').attr(
-    'href',
-    `/getFile?band_id=${ds_keys[0]},region_id=${ds_keys[1]}`
-  );
+function updateExportButtonLink(fileName) {
+  $('#exportButton').attr('href', `/static/mosaics/cluster/${fileName}`);
 }
+
 /**
  * Switch current active layer to the given singleband dataset.bhgn mj,
  *
@@ -941,52 +910,6 @@ function addRadioButtonListeners() {
 }
 
 /**
- * Display Google Sign in button and listen for changes.
- */
-function renderButton() {
-  gapi.signin2.render('signin2', {
-    scope: 'profile email',
-    width: 150,
-    height: 30,
-    longtitle: false,
-    theme: 'dark',
-    onsuccess: onSuccess,
-    onfailure: onFailure,
-  });
-}
-
-/**
- * Retrieves all files within Google Drive folder.
- */
-function getAllFiles() {
-  gapi.client.drive.files
-    .list({
-      q: "'1Y4kIY0XTCUPs-RniOYFFhaXxkpsHwXgL' in parents and trashed=false",
-      fields: 'nextPageToken, files(id, name)',
-    })
-    .then(function (response) {
-      var files = response.result.files;
-
-      files.length > 0
-        ? (STATE.driveFiles = files)
-        : console.log('No files found.');
-    });
-}
-
-/**
- * Parse Google Drive Folder contents for specific file
- * @param {string} filename
- */
-function getFileDownloadLink(filename) {
-  for (var i = 0; i < STATE.driveFiles.length; i++) {
-    var file = STATE.driveFiles[i];
-    if (file.name === filename) {
-      return `https://drive.google.com/uc?export=download&id=${file.id}`;
-    }
-  }
-}
-
-/**
  *  Main entrypoint.
  *  Called in app.html on window.onload.
  *
@@ -1016,71 +939,4 @@ function initializeApp(hostname) {
         layers: [osmBase],
       });
     });
-
-  $('#exportButton').click((element) => {
-    console.log('here');
-    const currentRegion = STATE.activeSinglebandLayer
-      ? serializeKeys(STATE.activeSinglebandLayer['keys'])
-      : undefined;
-
-    currentRegion
-      ? $.post('/exportFile', { regionId: currentRegion }).done((data) => {
-          console.log(data);
-          // $('#exportButton').attr('href', data);
-          window.open(data, '_blank');
-        })
-      : console.log('no file found');
-  });
-}
-
-/**
- *  On load, called to load the auth2 library and API client library.
- */
-function handleClientLoad() {
-  gapi.load('client:auth2', initClient);
-}
-
-/**
- * Logs when user successfully signs into Google.
- *
- * @param {Object} googleUser
- */
-function onSuccess(googleUser) {
-  initClient();
-  const currentUsername = googleUser.getBasicProfile().getName();
-
-  console.log(`Logged in as: ${currentUsername}`);
-  toggleDropdownInformation(currentUsername);
-}
-
-/**
- * Logs when user unsuccessfully signs into Google.
- */
-function onFailure(error) {
-  console.log(error);
-}
-
-/**
- * Logs out the current user
- */
-function signOut() {
-  let auth2 = gapi.auth2.getAuthInstance();
-  auth2.signOut().then(function () {
-    console.log('User signed out.');
-  });
-  toggleDropdownInformation();
-}
-
-/**
- * Toggles text within user profile dropdown
- *
- * @param {string} currentUsername
- */
-function toggleDropdownInformation(currentUsername) {
-  $('#currentUser').html() === 'Sign in'
-    ? $('#currentUser').html('Welcome, ' + currentUsername)
-    : $('#currentUser').html('Sign in');
-
-  $('#signin2').toggleClass('d-none');
-  $('#sign-out-button').toggleClass('d-none');
 }
