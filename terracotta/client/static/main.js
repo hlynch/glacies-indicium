@@ -288,6 +288,7 @@ function getSelectedBandLayer(radioButtons) {
   let keys = [];
 
   const currentRegion = $('#search-results .text-primary').attr('id');
+
   keys.push({ key: 'region', value: selectedBands[0] });
   keys.push({ key: 'band', value: currentRegion || '2' });
 
@@ -327,7 +328,6 @@ function resetRadioButtons() {
 function buildRegionTree(regions, dataset, container) {
   regions.forEach((region) => {
     let metadataArray = createMetadataArray(region, dataset);
-    console.log(metadataArray);
     let listRoot = document.createElement('ul');
     let newListElement = createListElement(region, metadataArray);
     listRoot.appendChild(newListElement);
