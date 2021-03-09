@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import rasterio
 import argparse
 import subprocess
@@ -13,9 +14,15 @@ from pprint import pprint
 # - logic to correlate each file's boundary data to the regional keys
 # - logic to generate a series of regional mosaics (might want a separate script...)
 # - compartmentalize this script into appropriately bite-sized functions
+#TODO: make this use the json file and region lists
+lowertier = ['MountCole', 'MountGreenlee', 'MountSpeed', 'MountWendland', 'NilsenPeak', 'TaylorNunatak']
+uppertier = ['ShackletonGlacier']
+REGION4 = 4
+REGION1 = 1
+#TODO: look at other TODOss
 
 # BAND EXTRACTION FUNCTION #
-def band_extract(data_folder, output_folder):
+def band_extract(data_folder_in, output_folder):
 
     print("####### BAND EXTRACTION ROUTINE #######") 
 
@@ -36,7 +43,7 @@ def band_extract(data_folder, output_folder):
             }
 
     # make a pathlist of paths to each geotiff in the data folder
-    pathlist = Path(data_folder).glob('*.tif')
+    pathlist = Path(data_folder_in).glob('*.tif')
 
     print("reading geotiffs in the data folder...")
 
@@ -162,15 +169,45 @@ def rekey_by_region(data_folder, output_folder, region_centers):
 
     return
 
+# builds single mosaic
+# expected naming convention: r1_r2_r3_r4_id.tif
+# files currently named: pre_r4_id.tif due to data constraints
+def build_mosaic(regionName, tier):
+    # Tier 2 - 4 all fit within *regionName*.tif
+    if (tier != REGION1):
+        build_virtual = "gdalbuildvrt mosaic.vrt *" + regionName + "*.tif"
+
+    else:
+        build_virtual = "gdalbuildvrt mosaic.vrt " + regionName + "*.tif"
+
+    build_mosaic = "gdal_translate -of GTiff -co \"TILED=YES\" mosaic.vrt ../temp/" + regionName + ".tif"
+
+    print("\n[RUNNING]: "+build_virtual)
+    subprocess.run(build_virtual, shell=True)
+    
+    print("\n[RUNNING]: "+build_mosaic)
+    subprocess.run(build_mosaic, shell=True)
+    
+    os.remove("mosaic.vrt")
+
 # MOSAIC GENERATION FUNCTION
 def build_mosaics(data_folder, output_folder):
     # GENERATING MOSAICS
-        # NOT SURE WHERE THIS FITS IN YET. MUST CALL GDAL TO BUILD VRTS AND THEN STITCH
-        # THEM TOGETHER ON A REGION-BY-REGION BASIS. MIGHT BE BEST TO DO THIS IN A SEPARATE SCRIPT.
-        # IF WE HAVE 4 LEVELS, A B C D, WE NEED:
-            # MOSAICS OF Ds TO COVER Cs,
-                # MOSAICS OF Cs TO COVER Bs, AND
-                    # MOSAICS OF Bs TO COVER As
+    # Print the current working directory
+    print("\n[CHDIR]: {0}".format(os.getcwd()))
+
+    #TODO: dont do it this way
+    # Change the current working directory
+    os.chdir('/home/jscarter/glacies-indicium/prep_scripts/source_data')
+
+    # Print the current working directory
+    print("\n[CHDIR]: {0}".format(os.getcwd()))
+
+    for region in lowertier:
+        build_mosaic(region, 4)
+    
+    #TODO: work w/ llogan to develop rest of logic when he finishes region bit
+
     return
 
 # ingests a three-column csv of region, lat, lon into a list of
@@ -210,12 +247,14 @@ def main():
     parser = argparse.ArgumentParser(description=
             'Process some GeoTIFFs according to a regional boundary key')
     parser.add_argument('--data_folder', '-d', help='Location of some GeoTIFF files')
+    parser.add_argument('--temp_folder', '-t', help='Location to output nonsplit Mosaic GeoTIFF files')
     parser.add_argument('--output_folder', '-o', help='Location to output new GeoTIFF files')
     args = parser.parse_args()
 
     # get the path to the data folder and output folder from the argument
     data_folder = Path(args.data_folder)
     output_folder = Path(args.output_folder)
+    temp_folder = Path(args.temp_folder)
 
     # ingest a 3-column csv containing L4 regions and their center lat/lon coordinates
     # store this data in region_centers
@@ -241,14 +280,14 @@ def main():
     ############################
     # pass the input/output folders to functions to perform the preprocessing steps
 
-    # band extraction (uncomment to run)
-    #band_extract(data_folder, output_folder)
-
     # region keying (uncomment to run)
-    rekey_by_region(data_folder, output_folder, region_centers)
+    #rekey_by_region(data_folder, output_folder, region_centers)
 
     # mosaic generation (uncomment to run)
-    #build_mosaics(data_folder, output_folder)
+    build_mosaics(data_folder, temp_folder)
+
+    # band extraction (uncomment to run)
+    band_extract(temp_folder, output_folder)
 
     # the script is done
     print("goodbye")
