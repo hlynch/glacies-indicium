@@ -6,8 +6,11 @@ import subprocess
 import csv
 import json
 import haversine
+import uuid
+import os
+import shutil
+import tempfile
 from pyproj import Transformer
-from pprint import pprint
 
 # TODO:
 # - logic to read in the csv from mark containing the regional key info
@@ -99,7 +102,7 @@ def band_extract(data_folder_in, output_folder):
             do_translate = subprocess.run(["gdal_translate", "-b", str(band), str(path), str(outfile_path)], stdout=subprocess.DEVNULL)
 
 # REGION KEYING FUNCTION
-def rekey_by_region(data_folder, output_folder, region_centers):
+def rekey_by_region(data_folder, temp_folder, region_centers):
     # INGEST MARK'S CSV WITH REGIONAL INFORMATION
     # FOR EACH REGION LEVEL:
         # IF RASTER BOUNDS ARE WITHIN REGIONAL BOUNDS:
@@ -112,9 +115,9 @@ def rekey_by_region(data_folder, output_folder, region_centers):
     pathlist = Path(data_folder).glob('*.tif')
 
     print("reading geotiffs in the data folder...")
+
     # iterate over each geotiff in the provided data folder
     for path in pathlist:
-
         ##############################
         # PRELIMINARY INFO GATHERING #
         ##############################
@@ -125,10 +128,12 @@ def rekey_by_region(data_folder, output_folder, region_centers):
         # print the name of and path to this file
         print('\t' + filepath)
 
-        # REGIONAL PROCESSING 
         # open the file with rasterio
         raster = rasterio.open(path)
 
+        #######################
+        # REGIONAL PROCESSING #
+        #######################
         # get the center coordinates of this raster
         # these values are projected in EPSG 3031 (antarctic polar stereographic)
         centerX, centerY = raster.xy(raster.height // 2, raster.width // 2)
@@ -139,7 +144,6 @@ def rekey_by_region(data_folder, output_folder, region_centers):
         # "unproject" these center coordinates into spherical latitude and longitude
         # which has epsg code 4326
         outProjection = 'epsg:4326'
-
         transformer = Transformer.from_crs(inProjection, outProjection)
         centerLat, centerLon = transformer.transform(centerX, centerY)
 
@@ -151,7 +155,6 @@ def rekey_by_region(data_folder, output_folder, region_centers):
         # visit each region in region_centers
         # at each region, add a row to the distances matrix which has
         # the region name and the distance from this image to that region
-
         for region in region_centers:
             distance = haversine.distance([centerLat, centerLon], [float(region[1]), float(region[2])])
             distances_matrix.append([region[0], distance])
@@ -164,8 +167,35 @@ def rekey_by_region(data_folder, output_folder, region_centers):
         # if we sort the matrix by its second column, the first row will be the nearest region
         distances_matrix = sorted(distances_matrix, key=lambda x: x[1])
 
+        nearestRegion = distances_matrix[0][0]
+        nearestRegionDistance = distances_matrix[0][1]
+
         print("\t\tnearest region: ")
-        print("\t\t\t" + distances_matrix[0][0] + "\t" + "{:.2f}".format(distances_matrix[0][1]) + " km")
+        print("\t\t\t" + nearestRegion + "\t" + "{:.2f}".format(nearestRegionDistance) + " km")
+
+        # generate a unique 4-character id for this raster
+        rasterId = str(uuid.uuid4())
+        rasterId = rasterId[0:4]
+
+        # display the id
+        print("\t\tunique id:")
+        print("\t\t\t" + rasterId)
+
+        # close the file with rasterio?
+
+        # construct a new file name
+        newRasterName = nearestRegion + '_' + rasterId + '.tif'
+        print("\t\tnew filename:")
+        print("\t\t\t" + newRasterName)
+
+        # construct a temp file path
+        tempFilePath = temp_folder + '/' + newRasterName
+        print(tempFilePath)
+
+        # move this raster file from its current name/location to a new name/output location
+        # new name: regionname_id.tif
+        # new location: temp_folder
+        result = shutil.copy(filepath, tempFilePath)
 
     return
 
@@ -280,14 +310,17 @@ def main():
     ############################
     # pass the input/output folders to functions to perform the preprocessing steps
 
-    # region keying (uncomment to run)
-    #rekey_by_region(data_folder, output_folder, region_centers)
+    # do the first two steps with a temporary directory to hold files between
+    # steps
+    with tempfile.TemporaryDirectory() as temp_folder:
+        # region keying (uncomment to run)
+        rekey_by_region(data_folder, temp_folder, region_centers)
 
-    # mosaic generation (uncomment to run)
-    build_mosaics(data_folder, temp_folder)
+        # mosaic generation (uncomment to run)
+        #build_mosaics(temp_folder, output_folder)
 
     # band extraction (uncomment to run)
-    band_extract(temp_folder, output_folder)
+    #band_extract(data_folder, output_folder)
 
     # the script is done
     print("goodbye")
