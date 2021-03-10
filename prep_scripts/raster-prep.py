@@ -102,7 +102,7 @@ def band_extract(data_folder_in, output_folder):
             do_translate = subprocess.run(["gdal_translate", "-b", str(band), str(path), str(outfile_path)], stdout=subprocess.DEVNULL)
 
 # REGION KEYING FUNCTION
-def rekey_by_region(data_folder, temp_folder, region_centers):
+def rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy):
     # INGEST MARK'S CSV WITH REGIONAL INFORMATION
     # FOR EACH REGION LEVEL:
         # IF RASTER BOUNDS ARE WITHIN REGIONAL BOUNDS:
@@ -183,14 +183,18 @@ def rekey_by_region(data_folder, temp_folder, region_centers):
 
         # close the file with rasterio?
 
+        # build a fully-qualified tiered regional name
+        newRasterName = build_regional_filename(regional_hierarchy, nearestRegion)
+
         # construct a new file name
-        newRasterName = nearestRegion + '_' + rasterId + '.tif'
+        newRasterName = newRasterName + '_' + rasterId + '.tif'
         print("\t\tnew filename:")
         print("\t\t\t" + newRasterName)
 
         # construct a temp file path
         tempFilePath = temp_folder + '/' + newRasterName
-        print(tempFilePath)
+        print("\t\ttemp filepath:")
+        print("\t\t\t" + tempFilePath)
 
         # move this raster file from its current name/location to a new name/output location
         # new name: regionname_id.tif
@@ -221,22 +225,30 @@ def build_mosaic(regionName, tier):
     os.remove("mosaic.vrt")
 
 # MOSAIC GENERATION FUNCTION
-def build_mosaics(data_folder, output_folder):
+def build_mosaics(data_folder, output_folder, region_centers):
     # GENERATING MOSAICS
     # Print the current working directory
-    print("\n[CHDIR]: {0}".format(os.getcwd()))
+    #print("\n[CHDIR]: {0}".format(os.getcwd()))
 
     #TODO: dont do it this way
     # Change the current working directory
-    os.chdir('/home/jscarter/glacies-indicium/prep_scripts/source_data')
+    #os.chdir('/home/jscarter/glacies-indicium/prep_scripts/source_data')
 
     # Print the current working directory
-    print("\n[CHDIR]: {0}".format(os.getcwd()))
+    #print("\n[CHDIR]: {0}".format(os.getcwd()))
 
-    for region in lowertier:
-        build_mosaic(region, 4)
+    #for region in lowertier:
+        #build_mosaic(region, 4)
     
     #TODO: work w/ llogan to develop rest of logic when he finishes region bit
+
+    # for every region in regions list:
+    #   make a string of filenames that contain that region
+    #   call gdalbuildvrt to build a temp vrt with string of filenames as trailing argument
+    #   call gdal_translate to make a mosaic from the vrt
+    #   save that mosaic as RegionName.tif
+    for region in region_centers:
+        break
 
     return
 
@@ -269,6 +281,47 @@ def ingest_regional_json(json_regions_file):
 
     return regional_hierarchy
 
+# build a filename from the regional hierarchy info
+def build_regional_filename(regional_hierarchy, t4Region):
+    # traverse down the json tree, building a filename at each level each time, until you
+    # reach a point where t4 region of the image matches the t4 region we're at
+    # then we will have a T1_T2_T3_T4 filename string
+
+    finalRasterNameStack = []
+    foundIt = False
+
+    # visit each t1
+    for t1 in regional_hierarchy:
+        #print(t1['name'])
+        finalRasterNameStack.append(t1['name'])
+        # visit each t2
+        for t2 in t1['subregions']:
+            #print('\t'+ t2['name'])
+            finalRasterNameStack.append(t2['name'])
+            # visit each t3
+            for t3 in t2['subregions']:
+                #print('\t\t' + t3['name'])
+                finalRasterNameStack.append(t3['name'])
+                # visit each t4
+                for t4 in t3['subregions']:
+                    #print('\t\t\t' + t4['name'])
+                    finalRasterNameStack.append(t4['name'])
+                    if(t4['name'] == t4Region):
+                        foundIt = True
+                    else:
+                        finalRasterNameStack.pop()
+                if(not foundIt):
+                    finalRasterNameStack.pop()
+            if(not foundIt):
+                finalRasterNameStack.pop()
+        if(not foundIt):
+            finalRasterNameStack.pop()
+
+    # build the filename
+    finalRasterFilename = "_".join(finalRasterNameStack)
+
+    return finalRasterFilename
+
 #################
 # Main Function #
 #################
@@ -277,14 +330,14 @@ def main():
     parser = argparse.ArgumentParser(description=
             'Process some GeoTIFFs according to a regional boundary key')
     parser.add_argument('--data_folder', '-d', help='Location of some GeoTIFF files')
-    parser.add_argument('--temp_folder', '-t', help='Location to output nonsplit Mosaic GeoTIFF files')
+    #parser.add_argument('--temp_folder', '-t', help='Location to output nonsplit Mosaic GeoTIFF files')
     parser.add_argument('--output_folder', '-o', help='Location to output new GeoTIFF files')
     args = parser.parse_args()
 
     # get the path to the data folder and output folder from the argument
     data_folder = Path(args.data_folder)
     output_folder = Path(args.output_folder)
-    temp_folder = Path(args.temp_folder)
+    #temp_folder = Path(args.temp_folder)
 
     # ingest a 3-column csv containing L4 regions and their center lat/lon coordinates
     # store this data in region_centers
@@ -298,8 +351,13 @@ def main():
     # TODO: THE REGIONS JSON FILE IS CURRENTLY IN A SOMEWHAT FUCKED-UP STATE
     # AND SHOULDN'T BE USED
     # ingest the json with the full regional hierarchy
-    #json_regions_file = 'regions.json'
-    #regional_hierarchy = ingest_regional_json(json_regions_file)
+    json_regions_file = 'regions.json'
+    regional_hierarchy = ingest_regional_json(json_regions_file)
+
+    print(regional_hierarchy[0]['subregions'][0]['subregions'][0]['subregions'][0]['name'])
+
+
+    #print(json.dumps(regional_hierarchy, indent=2, sort_keys=False))
 
     # regional_hierarchy now has the structured hierarchy info
     # we can use this to build fully-qualified filename strings by walking
@@ -314,10 +372,11 @@ def main():
     # steps
     with tempfile.TemporaryDirectory() as temp_folder:
         # region keying (uncomment to run)
-        rekey_by_region(data_folder, temp_folder, region_centers)
+        rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy)
 
         # mosaic generation (uncomment to run)
-        #build_mosaics(temp_folder, output_folder)
+        #build_mosaics(temp_folder, output_folder, region_centers)
+        
 
     # band extraction (uncomment to run)
     #band_extract(data_folder, output_folder)
