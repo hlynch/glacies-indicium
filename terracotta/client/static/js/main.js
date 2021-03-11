@@ -75,7 +75,6 @@ const STATE = {
   overlayLayer: undefined,
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
-  driveFiles: [],
   m_pos: 0,
 };
 
@@ -641,7 +640,7 @@ function toggleSinglebandMapLayer(currentRegion, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#exportButton').attr('href', `/static/mosaics/optimized/${fileName}`);
+  $('#exportButton').attr('href', `/static/mosaics/${fileName}`);
 }
 
 /**
