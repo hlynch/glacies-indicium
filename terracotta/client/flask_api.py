@@ -15,7 +15,6 @@ def get_map() -> Any:
 
 @client_api.route('/getJsonFile/<jsonFile>', methods=['GET'])
 def getBandNames(jsonFile):
-    print(jsonFile)
     filename = os.path.join(current_app.static_folder, 'data', jsonFile + '.json')
     with open(filename) as json_file:
         data = json.load(json_file)

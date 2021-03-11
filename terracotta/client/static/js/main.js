@@ -47,7 +47,7 @@ const singlebandStretchProxy = (arr) =>
     },
   });
 
-const DATASETS_PER_PAGE = 100;
+const DATASETS_PER_PAGE = 16;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
   { display_name: 'Greyscale', id: 'greys_r' },
@@ -69,7 +69,7 @@ const STATE = {
   dataset_metadata: {},
   colormap_values: {},
   current_colormap: '',
-  current_singleband_stretch: [0, 1],
+  current_singleband_stretch: [0, 233.1878],
   map: undefined,
   baseLayer: undefined,
   overlayLayer: undefined,
@@ -158,6 +158,7 @@ function assembleSinglebandURL(remote_host, keys, options, preview) {
       request_url += `&${option_key}=${options[option_key]}`;
     }
   }
+
   updateComputedUrl(request_url, keys);
   return request_url;
 }
@@ -248,7 +249,22 @@ function initUI(remote_host, keys) {
     createBandInputs(result);
   });
 
+  // initialize colormap selector
+  let colormapSelector = document.getElementById('colormap-selector');
+  colormapSelector.innerHTML = '';
+
+  for (let i = 0; i < COLORMAPS.length; i++) {
+    let cmapOption = document.createElement('option');
+    cmapOption.value = COLORMAPS[i].id;
+    cmapOption.innerHTML = COLORMAPS[i].display_name;
+    if (i === 0) {
+      cmapOption.selected = true;
+    }
+    colormapSelector.appendChild(cmapOption);
+  }
+
   resetLayerState();
+  updateColormap();
   removeSpinner();
 }
 
@@ -287,10 +303,12 @@ function getSelectedBandLayer(radioButtons) {
 
   let keys = [];
 
-  const currentRegion = $('#search-results .text-primary').attr('id');
+  const currentRegion =
+    $('#search-results .text-primary').attr('id') ||
+    $('#search-results li:eq(0)').prop('id');
 
-  keys.push({ key: 'region', value: selectedBands[0] });
-  keys.push({ key: 'band', value: currentRegion || '2' });
+  keys.push({ key: 'band', value: selectedBands[0] });
+  keys.push({ key: 'region', value: currentRegion });
 
   const datasetURL = assembleDatasetURL(
     STATE.remote_host,
@@ -307,7 +325,7 @@ function getSelectedBandLayer(radioButtons) {
       resultMetadata.push(firstResult[bandKey.key]);
     });
 
-    updateSinglebandLayer(resultMetadata);
+    toggleSinglebandMapLayer(currentRegion);
   });
 }
 
@@ -325,15 +343,18 @@ function resetRadioButtons() {
  * @param {JSON} regions
  * @param {HTML Element} container
  */
-function buildRegionTree(regions, dataset, container) {
+function buildRegionTree(regions, bands, container) {
   regions.forEach((region) => {
-    let metadataArray = createMetadataArray(region, dataset);
+    bands.forEach((bandObject) => {
+      createMetadataArray(region.name, bandObject.band);
+    });
+
     let listRoot = document.createElement('ul');
-    let newListElement = createListElement(region, metadataArray);
+    let newListElement = createListElement(region);
     listRoot.appendChild(newListElement);
 
     if (region.subregions !== undefined)
-      buildRegionTree(region.subregions, dataset, listRoot);
+      buildRegionTree(region.subregions, bands, listRoot);
 
     container.appendChild(listRoot);
   });
@@ -482,7 +503,7 @@ function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
     next_page_button.disabled = false;
   }
 
-  httpGet('/getJsonFile/regions').then((data) => {
+  httpGet('/getJsonFile/alphaPrototypeMockData').then((data) => {
     buildRegionTree(data, datasets, datasetTable);
   });
 
@@ -528,6 +549,33 @@ function updatePageControls() {
 }
 
 /**
+ * Triggered by a change in the colormap selector in app.html.
+ * @global
+ */
+function updateColormap() {
+  /**
+   * @type {HTMLSelectElement}
+   */
+  const colormapSelector = document.querySelector('select#colormap-selector');
+  STATE.current_colormap = colormapSelector.selectedOptions[0].value;
+
+  let colorbar = STATE.colormap_values[STATE.current_colormap];
+
+  if (!colorbar) {
+    return false;
+  }
+
+  if (STATE.activeSinglebandLayer == null) return;
+
+  const currentRegion = $('#search-results .text-primary')
+    .html()
+    .split(' ')
+    .join('');
+
+  updateSinglebandLayer(currentRegion, false);
+}
+
+/**
  * Adds a footprint overlay to map
  * @param {HTMLElement} datasetTable
  */
@@ -536,8 +584,13 @@ function toggleDatasetMouseover(element) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
   const layer_id = element.target.id;
+  const selected_band =
+    $('input[name="bandRadioButon"]:checked').val() ||
+    $('input[name="bandRadioButon"]:eq(0)').prop('id');
 
-  const metadata = STATE.dataset_metadata[layer_id];
+  const key = serializeKeys([layer_id, selected_band]);
+
+  const metadata = STATE.dataset_metadata[key];
 
   if (!metadata) return;
 
@@ -565,21 +618,21 @@ function toggleDatasetMouseleave() {
  * @param {Array<string>} ds_keys
  * @param {boolean} resetView
  */
-function toggleSinglebandMapLayer(ds_keys, resetView = true) {
+function toggleSinglebandMapLayer(currentRegion, resetView = true) {
   let currentKeys;
   if (STATE.activeSinglebandLayer) {
     currentKeys = STATE.activeSinglebandLayer.keys;
   }
   resetLayerState();
 
-  if (!ds_keys || compareArray(currentKeys, ds_keys)) {
-    return;
-  }
+  const currentBand =
+    $('input[name="bandRadioButon"]:checked').val() ||
+    $('input[name="bandRadioButon"]:eq(0)').val();
 
-  const fileName = 'WV02_' + ds_keys[0] + '_ds_' + ds_keys[1] + '.tif';
+  const fileName = currentRegion + '_' + currentBand + '.tif';
 
   updateExportButtonLink(fileName);
-  updateSinglebandLayer(ds_keys, resetView);
+  updateSinglebandLayer(currentRegion, resetView);
 }
 
 /**
@@ -588,7 +641,7 @@ function toggleSinglebandMapLayer(ds_keys, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#exportButton').attr('href', `/static/mosaics/cluster/${fileName}`);
+  $('#exportButton').attr('href', `/static/mosaics/optimized/${fileName}`);
 }
 
 /**
@@ -597,12 +650,20 @@ function updateExportButtonLink(fileName) {
  * @param {Array<string>} ds_keys Keys of new layer
  * @param {boolean} resetView Fly to new dataset if not already on screen
  */
-function updateSinglebandLayer(ds_keys, resetView = true) {
+function updateSinglebandLayer(currentRegion, resetView = true) {
   removeRasterLayer();
+  const selected_band =
+    $('input[name="bandRadioButon"]:checked').val() || 'blue';
 
-  const layer_id = serializeKeys(ds_keys);
-  const metadata = STATE.dataset_metadata[layer_id];
+  if ($('input[name="bandRadioButon"]:checked').length === 0) {
+    $('input[name="bandRadioButon"]:eq(0)').prop('checked', true);
+  }
 
+  const currentDataArray = [currentRegion, selected_band];
+
+  const regionKey = serializeKeys(currentDataArray);
+
+  const metadata = STATE.dataset_metadata[regionKey];
   let layer_options = {};
   if (STATE.current_colormap) {
     layer_options.colormap = STATE.current_colormap;
@@ -614,16 +675,20 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
   }
   const layer_url = assembleSinglebandURL(
     STATE.remote_host,
-    ds_keys,
+    currentDataArray,
     layer_options
   );
+
   STATE.activeSinglebandLayer = {
-    keys: ds_keys,
+    keys: regionKey,
     layer: L.tileLayer(layer_url).addTo(STATE.map),
   };
 
   $('#search-results .text-primary').removeClass('text-primary');
-  const dataset_layer = document.getElementById(`${layer_id}`);
+
+  const dataset_layer =
+    document.getElementById(`${currentRegion}`) ||
+    $('#search-results li:eq(0)');
   dataset_layer.classList.add('text-primary');
 
   if (resetView && metadata) {
@@ -634,6 +699,7 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
       screen._northEast.lng,
       screen._northEast.lat,
     ];
+
     const dsBounds = metadata.bounds;
     const screenCover = calcScreenCovered(dsBounds, screenBounds);
     if (screenCover < 0.1)
@@ -825,16 +891,14 @@ function resize(e) {
 
 /**
  * Retrieve and strore metadata values for current region
- * @param {JSON} region
- * @param {Object} dataset
+ * @param {string} region
+ * @param {string} bandName
  */
-function createMetadataArray(region, dataset) {
+function createMetadataArray(region, bandName) {
   let currentRegionMetaData = [];
-  const currentDataset = dataset[region.id];
 
-  STATE.keys.forEach((bandKey) => {
-    currentRegionMetaData.push(currentDataset[bandKey.key]);
-  });
+  currentRegionMetaData.push(region.split(' ').join(''));
+  currentRegionMetaData.push(bandName);
 
   httpGet(
     assembleMetadataURL(STATE.remote_host, currentRegionMetaData)
@@ -847,14 +911,17 @@ function createMetadataArray(region, dataset) {
  * Creates new list element with event listeners for hover and click
  * @param {JSON} content
  */
-function createListElement(content, metadata) {
+function createListElement(content) {
   const listElement = document.createElement('li');
+  const reducedName = content.name.split(' ').join('');
+
   listElement.innerHTML = content.name;
-  listElement.id = serializeKeys(metadata);
+  listElement.id = reducedName;
   listElement.classList.add('clickable');
+
   listElement.addEventListener(
     'click',
-    toggleSinglebandMapLayer.bind(null, metadata)
+    toggleSinglebandMapLayer.bind(null, reducedName)
   );
   listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
   listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
@@ -870,8 +937,8 @@ function createListElement(content, metadata) {
 function createNewRadioButton(inputContent) {
   let newRadioButton = document.createElement('input');
   newRadioButton.setAttribute('type', 'radio');
-  newRadioButton.setAttribute('value', '9143');
-  newRadioButton.setAttribute('id', inputContent['name']);
+  newRadioButton.setAttribute('value', inputContent['name'].toLowerCase());
+  newRadioButton.setAttribute('id', inputContent['name'].toLowerCase());
   newRadioButton.setAttribute(
     'name',
     inputContent['groupName'] ? inputContent['groupName'] : 'bandRadioButon'
@@ -888,7 +955,7 @@ function createNewRadioButton(inputContent) {
  */
 function createNewInputLabel(inputName, labelContent) {
   let newInputLabel = document.createElement('label');
-  newInputLabel.setAttribute('for', inputName);
+  newInputLabel.setAttribute('for', inputName.toLowerCase());
   newInputLabel.innerHTML = labelContent;
 
   return newInputLabel;

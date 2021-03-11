@@ -70,6 +70,9 @@ img.header {
 }
 #top-controls {
   margin-bottom: 20px;
+}
+#colormap-selector,
+#top-controls {
   width: 400px !important;
 }
 .input__text--upper {
