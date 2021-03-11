@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 import os
 import rasterio
@@ -77,11 +78,11 @@ def band_extract(data_folder_in, output_folder):
         centerX, centerY = raster.xy(raster.height // 2, raster.width // 2)
 
         # print the boundary info and number of bands
-        print('\t\tbounds: ' + str(bounds))
+        #print('\t\tbounds: ' + str(bounds))
         print('\t\tnbands: ' + str(nbands))
         print('\t\tcrs: ' + str(crs))
         print('\t\tnodatavals: ' + str(nodatavals))
-        print('\t\tcenterX, centerY: ' + str(centerX) + ', ' + str(centerY))
+        #print('\t\tcenterX, centerY: ' + str(centerX) + ', ' + str(centerY))
 
         ###################
         # BAND EXTRACTION #
@@ -100,6 +101,9 @@ def band_extract(data_folder_in, output_folder):
             # execute a gdal_translate in the os shell to extract bands to separate files
             # stdout parameter suppresses the gdal output
             do_translate = subprocess.run(["gdal_translate", "-b", str(band), str(path), str(outfile_path)], stdout=subprocess.DEVNULL)
+
+        # kill the og file cuz we don't need it anymore
+        os.remove(filepath)
 
 # REGION KEYING FUNCTION
 def rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy):
@@ -124,9 +128,14 @@ def rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy
         # extract the filename
         filename = str(path.stem)
         filepath = str(path)
+        headerpath = str(path.parents[0])
+        headerpath += "/"
+        headerpath += filename
+        headerpath += ".hdr"
 
         # print the name of and path to this file
         print('\t' + filepath)
+        #print('\t' + headerpath)
 
         # open the file with rasterio
         raster = rasterio.open(path)
@@ -178,8 +187,7 @@ def rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy
         rasterId = rasterId[0:4]
 
         # display the id
-        print("\t\tunique id:")
-        print("\t\t\t" + rasterId)
+        print("\t\tunique id:\t" + rasterId)
 
         # close the file with rasterio?
 
@@ -187,19 +195,29 @@ def rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy
         newRasterName = build_regional_filename(regional_hierarchy, nearestRegion)
 
         # construct a new file name
-        newRasterName = newRasterName + '_' + rasterId + '.tif'
-        print("\t\tnew filename:")
-        print("\t\t\t" + newRasterName)
+        finalRasterName = newRasterName + '_' + rasterId + '.tif'
+        finalHeaderName = newRasterName + '_' + rasterId + '.hdr'
+        #print("\t\tnew filename:")
+        #print("\t\t\t" + finalRasterName)
+        #print("\t\tnew header name:")
+        #print("\t\t\t" + finalHeaderName)
 
         # construct a temp file path
-        tempFilePath = temp_folder + '/' + newRasterName
-        print("\t\ttemp filepath:")
-        print("\t\t\t" + tempFilePath)
+        tempFilePath = temp_folder + '/' + finalRasterName
+        tempHeaderPath = temp_folder + '/' + finalHeaderName
+        #print("\t\ttemp filepath:")
+        #print("\t\t\t" + tempFilePath)
+        #print("\t\ttemp header path:")
+        #print("\t\t\t" + tempHeaderPath)
 
         # move this raster file from its current name/location to a new name/output location
         # new name: regionname_id.tif
         # new location: temp_folder
         result = shutil.copy(filepath, tempFilePath)
+
+        # ALSO COPY HEADER FILE, IF IT EXISTS
+        result = shutil.copy(headerpath, tempHeaderPath)
+        
 
     return
 
@@ -225,7 +243,7 @@ def build_mosaic(regionName, tier):
     os.remove("mosaic.vrt")
 
 # MOSAIC GENERATION FUNCTION
-def build_mosaics(data_folder, output_folder, region_centers):
+def build_mosaics(temp_folder, output_folder, region_centers):
     # GENERATING MOSAICS
     # Print the current working directory
     #print("\n[CHDIR]: {0}".format(os.getcwd()))
@@ -242,13 +260,44 @@ def build_mosaics(data_folder, output_folder, region_centers):
     
     #TODO: work w/ llogan to develop rest of logic when he finishes region bit
 
-    # for every region in regions list:
-    #   make a string of filenames that contain that region
-    #   call gdalbuildvrt to build a temp vrt with string of filenames as trailing argument
-    #   call gdal_translate to make a mosaic from the vrt
-    #   save that mosaic as RegionName.tif
-    for region in region_centers:
-        break
+    print("####### REGIONAL MOSAIC GENERATION ROUTINE #######") 
+
+    # iterate over every file in the temp directory
+    pathlist = Path(temp_folder).glob('*.tif')
+
+    # group the files by t4 region
+    groups = defaultdict(list)
+
+    for path in pathlist:
+        t1, t2, t3, t4, uid = str(path.stem).split('_')
+
+        groups[t4].append(str(path))
+
+    # visit each unique region name found in these files
+    # and make a string that is a list of their filenames
+    # separated by spaces
+    # this will be an argument to the gdalbuildvrt command
+    imageGroupList = ""
+    for group in groups:
+        pathlist = Path(temp_folder).glob('*.tif')
+        for path in pathlist:
+            if group in str(path.stem):
+                imageGroupList += str(path)
+                imageGroupList += " "
+        print("Group: " + group)
+        # call gdalbuildvrt on this string (list) of files
+        vrtString = "gdalbuildvrt mosaic.vrt " + imageGroupList
+        #print("calling this: " + vrtString)
+        subprocess.call(vrtString, shell=True)
+
+        translateString = "gdal_translate -of GTiff -co \"TILED=YES\" mosaic.vrt " + str(output_folder) + "/" + group + ".tif"
+        #print("TRANSLATE: " + translateString)
+        subprocess.call(translateString, shell=True)
+        imageGroupList = ""
+        print()
+
+        os.remove("mosaic.vrt")
+
 
     return
 
@@ -354,7 +403,7 @@ def main():
     json_regions_file = 'regions.json'
     regional_hierarchy = ingest_regional_json(json_regions_file)
 
-    print(regional_hierarchy[0]['subregions'][0]['subregions'][0]['subregions'][0]['name'])
+    #print(regional_hierarchy[0]['subregions'][0]['subregions'][0]['subregions'][0]['name'])
 
 
     #print(json.dumps(regional_hierarchy, indent=2, sort_keys=False))
@@ -374,12 +423,17 @@ def main():
         # region keying (uncomment to run)
         rekey_by_region(data_folder, temp_folder, region_centers, regional_hierarchy)
 
-        # mosaic generation (uncomment to run)
-        #build_mosaics(temp_folder, output_folder, region_centers)
-        
+        # press enter to continue
+        input("press ENTER to continue...")
 
+        # mosaic generation (uncomment to run)
+        build_mosaics(temp_folder, output_folder, region_centers)
+
+    # press enter to continue
+    input("press ENTER to continue...")
+        
     # band extraction (uncomment to run)
-    #band_extract(data_folder, output_folder)
+    band_extract(output_folder, output_folder)
 
     # the script is done
     print("goodbye")
