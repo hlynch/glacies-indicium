@@ -1,40 +1,40 @@
 @font-face {
-  font-family: "Fredoka One";
-  src: url("../fonts/FredokaOne-Regular.ttf") format("truetype");
+  font-family: 'Fredoka One';
+  src: url('../fonts/FredokaOne-Regular.ttf') format('truetype');
 }
 
 @font-face {
-  font-family: "aleo-r";
-  src: url("aleo-regular-webfont.woff2") format("woff2"),
-    url("aleo-regular-webfont.woff") format("woff"),
-    url("../fonts/aleo-regular.otf") format("opentype");
+  font-family: 'aleo-r';
+  src: url('aleo-regular-webfont.woff2') format('woff2'),
+    url('aleo-regular-webfont.woff') format('woff'),
+    url('../fonts/aleo-regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "galderglynn-r";
-  src: url("../fonts/galderglynn-regular-webfont.woff2") format("woff2"),
-    url("../fonts/galderglynn-regular-webfont.woff") format("woff"),
-    url("../fonts/galderglynn-regular.ttf") format("truetype");
+  font-family: 'galderglynn-r';
+  src: url('../fonts/galderglynn-regular-webfont.woff2') format('woff2'),
+    url('../fonts/galderglynn-regular-webfont.woff') format('woff'),
+    url('../fonts/galderglynn-regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "worksans-r";
-  src: url("../fonts/worksans-regular-webfont.woff2") format("woff2"),
-    url("../fonts/worksans-regular-webfont.woff") format("woff"),
-    url("../fonts/worksans-regular.otf") format("opentype");
+  font-family: 'worksans-r';
+  src: url('../fonts/worksans-regular-webfont.woff2') format('woff2'),
+    url('../fonts/worksans-regular-webfont.woff') format('woff'),
+    url('../fonts/worksans-regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: "worksans-b";
-  src: url("../fonts/worksans-bold-webfont.woff2") format("woff2"),
-    url("../fonts/worksans-bold-webfont.woff") format("woff"),
-    url("../fonts/worksans-bold.otf") format("opentype");
+  font-family: 'worksans-b';
+  src: url('../fonts/worksans-bold-webfont.woff2') format('woff2'),
+    url('../fonts/worksans-bold-webfont.woff') format('woff'),
+    url('../fonts/worksans-bold.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }
@@ -48,7 +48,7 @@ body {
   overflow-x: hidden;
   padding-bottom: 300px;
   padding-top: 76px;
-  font-family: "worksans-r", serif;
+  font-family: 'worksans-r', serif;
 }
 
 h1,
@@ -57,7 +57,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "worksans-b", serif;
+  font-family: 'worksans-b', serif;
   padding: 40px;
 }
 
@@ -71,7 +71,7 @@ h2 {
 
 p,
 ol {
-  font-family: "aleo-r";
+  font-family: 'aleo-r';
   text-align: justify;
   margin: 0 auto;
   max-width: 60%;
@@ -130,7 +130,7 @@ ol {
 }
 
 .welcome-message {
-  font-family: "Fredoka One", serif;
+  font-family: 'Fredoka One', serif;
   text-align: left !important;
   margin-left: 5% !important;
   margin-bottom: -45px;
@@ -138,7 +138,7 @@ ol {
 }
 
 .jumbotron-fluid {
-  background-image: url("../images/jumbo-bg.jpg");
+  background-image: url('../images/jumbo-bg.jpg');
   background-size: cover;
   height: 100%;
   padding-top: 50px;
@@ -147,7 +147,7 @@ ol {
 }
 
 .display-4 {
-  font-family: "galderglynn-r", sans-serif;
+  font-family: 'galderglynn-r', sans-serif;
   font-weight: 200;
   padding-top: 100px;
   margin: 0px;
@@ -259,11 +259,31 @@ ol {
   font-size: 24px;
 }
 
-.fab:hover,
-.fas:hover {
-  color: #0e76a8;
+.list-group a {
+  color: rgb(51, 162, 255) !important;
 }
-
 .list-group a:nth-child(odd) {
   background-color: #f9f9f9;
+}
+
+.iframe-container {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+}
+
+.resp-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.dropdrown-link {
+  color: #495057;
+  text-align: inherit;
+  width: 100%;
+  background: none !important;
 }

@@ -124,4 +124,8 @@ ENV/
 # VS Code
 .vscode/
 
+#GeoTIFF files
 *.tif 
+
+# node dependencies
+node_modules/

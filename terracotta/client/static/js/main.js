@@ -62,17 +62,20 @@ const COLORMAPS = [
 
 const STATE = {
   keys: [],
+  ds_keys: [],
   errors: errorProxy([]),
   remote_host: '',
   current_dataset_page: 0,
   dataset_metadata: {},
   colormap_values: {},
   current_colormap: '',
+  current_singleband_stretch: [0, 233.1878],
   map: undefined,
   baseLayer: undefined,
   overlayLayer: undefined,
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
+  driveFiles: [],
   m_pos: 0,
 };
 
@@ -155,6 +158,7 @@ function assembleSinglebandURL(remote_host, keys, options, preview) {
       request_url += `&${option_key}=${options[option_key]}`;
     }
   }
+
   updateComputedUrl(request_url, keys);
   return request_url;
 }
@@ -241,61 +245,119 @@ function getColormapValues(remote_host, num_values = 100) {
  * @param {Array<Terracotta.IKey>} keys
  */
 function initUI(remote_host, keys) {
-  // initialize list of keys and key descriptions
-  let keyList = document.getElementById('key-list');
-  keyList.innerHTML = '';
-  for (let i = 0; i < keys.length; i++) {
-    let currentKey = keys[i].key;
-    let label = document.createElement('label');
-    let description = document.createTextNode(currentKey);
-    let checkbox = document.createElement('input');
-
-    checkbox.type = 'checkbox';
-    checkbox.name = currentKey;
-    checkbox.value = currentKey;
-
-    label.appendChild(checkbox);
-    label.appendChild(description);
-    keyList.appendChild(label);
-  }
-
-  const checkboxes = document.querySelectorAll('input[type=checkbox]');
-  checkboxes.forEach(function (checkbox) {
-    checkbox.addEventListener('change', function () {
-      enabledSettings = Array.from(checkboxes) // Convert checkboxes to an array to use filter and map.
-        .filter((i) => i.checked) // Use Array.filter to remove unchecked checkboxes.
-        .map((i) => i.value); // Use Array.map to extract only the checkbox values from the array of objects.
-
-      enabledSettings.length > 0
-        ? console.table(enabledSettings)
-        : console.log('No items selected');
-    });
+  httpGet('/getJsonFile/bandNames').then((result) => {
+    createBandInputs(result);
   });
 
-  // initialize table header for search results
-  let datasetTable = document.getElementById('search-results');
-  datasetTable.innerHTML = '';
-  let tableHeader = document.createElement('th');
+  // initialize colormap selector
+  let colormapSelector = document.getElementById('colormap-selector');
+  colormapSelector.innerHTML = '';
 
-  console.table(keys);
-
-  for (let i = 0; i < keys.length; i++) {
-    const headerEntry = document.createElement('td');
-    headerEntry.innerHTML = keys[i].key;
-    tableHeader.appendChild(headerEntry);
-    datasetTable.appendChild(tableHeader);
+  for (let i = 0; i < COLORMAPS.length; i++) {
+    let cmapOption = document.createElement('option');
+    cmapOption.value = COLORMAPS[i].id;
+    cmapOption.innerHTML = COLORMAPS[i].display_name;
+    if (i === 0) {
+      cmapOption.selected = true;
+    }
+    colormapSelector.appendChild(cmapOption);
   }
 
-  // create sliders
-  let sliderDummyOptions = {
-    start: [0.0, 1.0],
-    range: { min: 0, max: 1 },
-    connect: true,
-    behaviour: 'drag',
-  };
-
   resetLayerState();
+  updateColormap();
   removeSpinner();
+}
+
+/**
+ * Creates a new input for each availible GeoTiff band
+ *
+ * @param {Array} bandNames
+ */
+function createBandInputs(bandNames) {
+  bandNames.forEach((band) => {
+    let radioButtonContainer = document.createElement('div');
+    radioButtonContainer.classList.add('custom-radio');
+    radioButtonContainer.classList.add('mb-10');
+
+    let bandRadioButon = createNewRadioButton(band);
+    let radioButtonLabel = createNewInputLabel(band['name'], band['name']);
+
+    radioButtonContainer.appendChild(bandRadioButon);
+    radioButtonContainer.appendChild(radioButtonLabel);
+
+    $('#key-list').append(radioButtonContainer);
+  });
+
+  addRadioButtonListeners();
+}
+
+/**
+ *Gets current selected band from radio buttons.
+ *
+ * @param {Array<HtmlElement} radioButtons
+ */
+function getSelectedBandLayer(radioButtons) {
+  const selectedBands = Array.from(radioButtons)
+    .filter((i) => i.checked)
+    .map((i) => i.value);
+
+  let keys = [];
+
+  const currentRegion =
+    $('#search-results .text-primary').attr('id') ||
+    $('#search-results li:eq(0)').prop('id');
+
+  keys.push({ key: 'band', value: selectedBands[0] });
+  keys.push({ key: 'region', value: currentRegion });
+
+  const datasetURL = assembleDatasetURL(
+    STATE.remote_host,
+    keys,
+    DATASETS_PER_PAGE,
+    STATE.current_dataset_page
+  );
+
+  httpGet(datasetURL).then((res) => {
+    const firstResult = res.datasets[0];
+    let resultMetadata = [];
+
+    STATE.keys.forEach((bandKey) => {
+      resultMetadata.push(firstResult[bandKey.key]);
+    });
+
+    toggleSinglebandMapLayer(currentRegion);
+  });
+}
+
+/**
+ * Reset the radio buttons
+ */
+function resetRadioButtons() {
+  $('input[name=bandListItem]').prop('checked', false);
+  $('#clear-button').toggleClass('d-none');
+  $('#clear-button').toggleClass('d-inline-block');
+}
+
+/**
+ * Parses json list of regions and creates nested menu
+ * @param {JSON} regions
+ * @param {HTML Element} container
+ */
+function buildRegionTree(regions, bands, container) {
+  regions.forEach((region) => {
+    bands.forEach((bandObject) => {
+      createMetadataArray(region.name, bandObject.band);
+    });
+
+    let listRoot = document.createElement('ul');
+    let newListElement = createListElement(region);
+    listRoot.appendChild(newListElement);
+
+    if (region.subregions !== undefined)
+      buildRegionTree(region.subregions, bands, listRoot);
+
+    container.appendChild(listRoot);
+  });
 }
 
 // ===================================================
@@ -402,28 +464,21 @@ function updateSearchResults(
   keys = STATE.keys
 ) {
   // initialize table header for search results
-  const datasetTable = document.getElementById('search-results');
-  datasetTable.innerHTML = '';
-  const tableHeader = document.createElement('tr');
-  for (let i = 0; i < keys.length; i++) {
-    const headerEntry = document.createElement('th');
-    headerEntry.innerHTML = keys[i].key;
-    tableHeader.appendChild(headerEntry);
-  }
-  datasetTable.appendChild(tableHeader);
+  const regionList = document.getElementById('search-results');
+  regionList.innerHTML = '';
 
   // get key constraints from UI
   let key_constraints = [];
 
-  // Request datasets
-  const datasetURL = assembleDatasetURL(
-    remote_host,
+  const datasetUrl = assembleDatasetURL(
+    STATE.remote_host,
     key_constraints,
     DATASETS_PER_PAGE,
     STATE.current_dataset_page
   );
-  return httpGet(datasetURL).then((res) => {
-    updateDatasetList(remote_host, res.datasets, keys);
+
+  return httpGet(datasetUrl).then((res) => {
+    updateDatasetList(remote_host, res.datasets);
   });
 }
 
@@ -448,58 +503,18 @@ function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
     next_page_button.disabled = false;
   }
 
-  // update table rows
-  if (datasets.length === 0) {
-    let resultRow = document.createElement('tr');
-    resultRow.innerHTML = `<td colspan=${keys.length}>No datasets found</td>`;
-    datasetTable.appendChild(resultRow);
-    return;
-  }
+  httpGet('/getJsonFile/alphaPrototypeMockData').then((data) => {
+    buildRegionTree(data, datasets, datasetTable);
+  });
 
-  for (let i = 0; i < datasets.length; i++) {
-    let currentDataset = datasets[i];
-    let resultRow = document.createElement('tr');
-    let ds_keys = [];
-    for (let j = 0; j < keys.length; j++) {
-      let resultEntry = document.createElement('td');
-      ds_keys[j] = currentDataset[keys[j].key];
-      resultEntry.innerHTML = ds_keys[j];
-      resultRow.appendChild(resultEntry);
-    }
-    resultRow.id = `dataset-${serializeKeys(ds_keys)}`;
-    if (
-      STATE.activeSinglebandLayer &&
-      compareArray(STATE.activeSinglebandLayer.keys, ds_keys)
-    ) {
-      resultRow.classList.add('active');
-    }
-    resultRow.classList.add('clickable');
-    resultRow.addEventListener(
-      'click',
-      toggleSinglebandMapLayer.bind(null, ds_keys)
-    );
-    resultRow.addEventListener(
-      'mouseenter',
-      toggleDatasetMouseover.bind(null, resultRow)
-    );
-    resultRow.addEventListener(
-      'mouseleave',
-      toggleDatasetMouseover.bind(null, null)
-    );
+  addListMargin();
+}
 
-    // show thumbnails
-    let detailsRow = document.createElement('tr');
-    let thumbnailUrl = assembleSinglebandURL(remote_host, ds_keys, null, true);
-    detailsRow.innerHTML = `<td colspan=${keys.length}><img src=${thumbnailUrl} class='thumbnail-image'></td>`;
-    resultRow.appendChild(detailsRow);
-
-    datasetTable.appendChild(resultRow);
-
-    // retrieve metadata
-    httpGet(assembleMetadataURL(remote_host, ds_keys)).then((metadata) =>
-      storeMetadata(metadata)
-    );
-  }
+/**
+ * Finds the first list element and add margin to increase whitespace.
+ */
+function addListMargin() {
+  $('#search-results ul:eq(0)').addClass('ml-20');
 }
 
 /**
@@ -534,46 +549,48 @@ function updatePageControls() {
 }
 
 /**
- * Updates thumbnail preview
- * @param {HTMLImageElement} img
- * @param {boolean} show
+ * Triggered by a change in the colormap selector in app.html.
+ * @global
  */
-function showCurrentThumnbnail(img, show) {
-  const thumbnail = document.getElementById('thumbnail-holder');
-  if (show) {
-    var backgroundProperty = `url(${img.src})`;
-    thumbnail.style.backgroundImage = backgroundProperty;
-  } else {
-    thumbnail.style.backgroundImage = 'none';
+function updateColormap() {
+  /**
+   * @type {HTMLSelectElement}
+   */
+  const colormapSelector = document.querySelector('select#colormap-selector');
+  STATE.current_colormap = colormapSelector.selectedOptions[0].value;
+
+  let colorbar = STATE.colormap_values[STATE.current_colormap];
+
+  if (!colorbar) {
+    return false;
   }
+
+  if (STATE.activeSinglebandLayer == null) return;
+
+  const currentRegion = $('#search-results .text-primary')
+    .html()
+    .split(' ')
+    .join('');
+
+  updateSinglebandLayer(currentRegion, false);
 }
 
 /**
  * Adds a footprint overlay to map
  * @param {HTMLElement} datasetTable
  */
-function toggleDatasetMouseover(datasetTable) {
+function toggleDatasetMouseover(element) {
   if (STATE.overlayLayer != null) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
+  const layer_id = element.target.id;
+  const selected_band =
+    $('input[name="bandRadioButon"]:checked').val() ||
+    $('input[name="bandRadioButon"]:eq(0)').prop('id');
 
-  if (datasetTable == null) {
-    showCurrentThumnbnail(null, false);
-    return;
-  }
-  showCurrentThumnbnail(datasetTable.querySelector('img'), true);
-  /**
-   * @type {NodeListOf<HTMLTableCellElement>}
-   */
-  const tdElements = datasetTable.querySelectorAll('td');
-  const keys = [];
-  for (let i = 0; i < tdElements.length; i++) {
-    if (tdElements[i].parentElement.classList.contains('clickable'))
-      keys.push(tdElements[i].innerHTML);
-  }
+  const key = serializeKeys([layer_id, selected_band]);
 
-  const layer_id = serializeKeys(keys);
-  const metadata = STATE.dataset_metadata[layer_id];
+  const metadata = STATE.dataset_metadata[key];
 
   if (!metadata) return;
 
@@ -581,9 +598,17 @@ function toggleDatasetMouseover(datasetTable) {
     style: {
       color: '#0B4566',
       weight: 5,
-      opacity: 0.65,
+      opacity: 1,
     },
   }).addTo(STATE.map);
+}
+
+/**
+ * Removes overlay from map after hover
+ * @param {HTMLElement} datasetTable
+ */
+function toggleDatasetMouseleave() {
+  STATE.map.removeLayer(STATE.overlayLayer);
 }
 
 /**
@@ -593,36 +618,52 @@ function toggleDatasetMouseover(datasetTable) {
  * @param {Array<string>} ds_keys
  * @param {boolean} resetView
  */
-function toggleSinglebandMapLayer(ds_keys, resetView = true) {
+function toggleSinglebandMapLayer(currentRegion, resetView = true) {
   let currentKeys;
   if (STATE.activeSinglebandLayer) {
     currentKeys = STATE.activeSinglebandLayer.keys;
   }
-
   resetLayerState();
 
-  if (!ds_keys || compareArray(currentKeys, ds_keys)) {
-    return;
-  }
+  const currentBand =
+    $('input[name="bandRadioButon"]:checked').val() ||
+    $('input[name="bandRadioButon"]:eq(0)').val();
 
-  const layer_id = serializeKeys(ds_keys);
-  const metadata = STATE.dataset_metadata[layer_id];
+  const fileName = currentRegion + '_' + currentBand + '.tif';
 
-  updateSinglebandLayer(ds_keys, resetView);
+  updateExportButtonLink(fileName);
+  updateSinglebandLayer(currentRegion, resetView);
 }
 
 /**
- * Switch current active layer to the given singleband dataset.
+ * Update the download link to be the current file set.
+ *
+ * @param {string} fileDownloadLink
+ */
+function updateExportButtonLink(fileName) {
+  $('#exportButton').attr('href', `/static/mosaics/optimized/${fileName}`);
+}
+
+/**
+ * Switch current active layer to the given singleband dataset.bhgn mj,
  *
  * @param {Array<string>} ds_keys Keys of new layer
  * @param {boolean} resetView Fly to new dataset if not already on screen
  */
-function updateSinglebandLayer(ds_keys, resetView = true) {
+function updateSinglebandLayer(currentRegion, resetView = true) {
   removeRasterLayer();
+  const selected_band =
+    $('input[name="bandRadioButon"]:checked').val() || 'blue';
 
-  const layer_id = serializeKeys(ds_keys);
-  const metadata = STATE.dataset_metadata[layer_id];
+  if ($('input[name="bandRadioButon"]:checked').length === 0) {
+    $('input[name="bandRadioButon"]:eq(0)').prop('checked', true);
+  }
 
+  const currentDataArray = [currentRegion, selected_band];
+
+  const regionKey = serializeKeys(currentDataArray);
+
+  const metadata = STATE.dataset_metadata[regionKey];
   let layer_options = {};
   if (STATE.current_colormap) {
     layer_options.colormap = STATE.current_colormap;
@@ -634,21 +675,21 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
   }
   const layer_url = assembleSinglebandURL(
     STATE.remote_host,
-    ds_keys,
+    currentDataArray,
     layer_options
   );
-  console.log(layer_url);
+
   STATE.activeSinglebandLayer = {
-    keys: ds_keys,
-    layer: L.tileLayer(layer_url, { transparent: true }).addTo(STATE.map),
+    keys: regionKey,
+    layer: L.tileLayer(layer_url).addTo(STATE.map),
   };
 
-  const dataset_layer = document.getElementById(`dataset-${layer_id}`);
+  $('#search-results .text-primary').removeClass('text-primary');
 
-  if (dataset_layer) {
-    // Depending on search, the dataset layer might not be present in the DOM.
-    dataset_layer.classList.add('active');
-  }
+  const dataset_layer =
+    document.getElementById(`${currentRegion}`) ||
+    $('#search-results li:eq(0)');
+  dataset_layer.classList.add('text-primary');
 
   if (resetView && metadata) {
     const screen = STATE.map.getBounds();
@@ -658,6 +699,7 @@ function updateSinglebandLayer(ds_keys, resetView = true) {
       screen._northEast.lng,
       screen._northEast.lat,
     ];
+
     const dsBounds = metadata.bounds;
     const screenCover = calcScreenCovered(dsBounds, screenBounds);
     if (screenCover < 0.1)
@@ -736,7 +778,7 @@ function updateComputedUrl(url, keys = null) {
     layerInfoParent.style.display = 'block';
     computedUrl.parentElement.style.display = 'block';
   }
-  computedUrl.innerHTML = `<b>current XYZ URL - </b>${url}`;
+  computedUrl.innerHTML = `<span class="bold text-primary">current XYZ URL - </span>${url}`;
   let metadata = null;
   if (keys != null) {
     metadata = STATE.dataset_metadata[serializeKeys(keys)];
@@ -755,7 +797,8 @@ function updateMetadataText(metadata) {
     return;
   }
   metadataField.style.display = 'block';
-  metadataField.innerHTML = '<b>current metadata -</b> ';
+  metadataField.innerHTML =
+    '<span class="bold text-primary">current metadata -</span> ';
   if (metadata.mean)
     metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
   if (metadata.range)
@@ -847,6 +890,93 @@ function resize(e) {
 }
 
 /**
+ * Retrieve and strore metadata values for current region
+ * @param {string} region
+ * @param {string} bandName
+ */
+function createMetadataArray(region, bandName) {
+  let currentRegionMetaData = [];
+
+  currentRegionMetaData.push(region.split(' ').join(''));
+  currentRegionMetaData.push(bandName);
+
+  httpGet(
+    assembleMetadataURL(STATE.remote_host, currentRegionMetaData)
+  ).then((metadata) => storeMetadata(metadata));
+
+  return currentRegionMetaData;
+}
+
+/**
+ * Creates new list element with event listeners for hover and click
+ * @param {JSON} content
+ */
+function createListElement(content) {
+  const listElement = document.createElement('li');
+  const reducedName = content.name.split(' ').join('');
+
+  listElement.innerHTML = content.name;
+  listElement.id = reducedName;
+  listElement.classList.add('clickable');
+
+  listElement.addEventListener(
+    'click',
+    toggleSinglebandMapLayer.bind(null, reducedName)
+  );
+  listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
+  listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
+
+  return listElement;
+}
+
+/**
+ * Creates a new input of type radio
+ *
+ * @param {Object} inputContent
+ */
+function createNewRadioButton(inputContent) {
+  let newRadioButton = document.createElement('input');
+  newRadioButton.setAttribute('type', 'radio');
+  newRadioButton.setAttribute('value', inputContent['name'].toLowerCase());
+  newRadioButton.setAttribute('id', inputContent['name'].toLowerCase());
+  newRadioButton.setAttribute(
+    'name',
+    inputContent['groupName'] ? inputContent['groupName'] : 'bandRadioButon'
+  );
+
+  return newRadioButton;
+}
+
+/**
+ * Creates a new label for a specific input element
+ *
+ * @param {string} inputName
+ * @param {string} labelContent
+ */
+function createNewInputLabel(inputName, labelContent) {
+  let newInputLabel = document.createElement('label');
+  newInputLabel.setAttribute('for', inputName.toLowerCase());
+  newInputLabel.innerHTML = labelContent;
+
+  return newInputLabel;
+}
+
+/**
+ * Add an event listener to each band input to toggle a new layer
+ */
+function addRadioButtonListeners() {
+  const radioButtons = document.querySelectorAll('input[type=radio]');
+
+  radioButtons.forEach((radioButton) => {
+    radioButton.addEventListener('change', () => {
+      $('#clear-button').toggleClass('d-inline-block');
+      $('#clear-button').toggleClass('d-none');
+      getSelectedBandLayer(radioButtons);
+    });
+  });
+}
+
+/**
  *  Main entrypoint.
  *  Called in app.html on window.onload.
  *
@@ -860,67 +990,20 @@ function initializeApp(hostname) {
   }
 
   STATE.remote_host = hostname;
-
-  const EPSG3031 = new L.Proj.CRS(
-    'EPSG:3031',
-    '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs',
-    {
-      origin: [-4194304, 4194304],
-      resolutions: [8192.0, 4096.0, 2048.0, 1024.0, 512.0, 256.0],
-      bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
-    }
-  );
-
-  const southWest = L.latLng(-38.94137277935882, -135);
-  const northEast = L.latLng(-38.94137277935882, 45);
-  const bounds = L.latLngBounds(southWest, northEast);
-
   getColormapValues(hostname)
     .then(() => getKeys(hostname))
     .then((keys) => {
       STATE.keys = keys;
       initUI(hostname, keys);
       updateSearchResults();
-
-      const nasaAttrib =
-        "Data Source &copy; <a href='https://www.comnap.aq/SitePages/Home.aspx' target='_blank'>" +
-        "COMNAP</a><br>Base Map &copy; <a href='https://wiki.earthdata.nasa.gov/display/GIBS' target='_blank'>" +
-        'NASA EOSDIS GIBS</a>';
-      const nasaUrl =
-        'https://gibs.earthdata.nasa.gov' +
-        '/wmts/epsg3031/best/' +
-        '{layer}/default/{tileMatrixSet}/{z}/{y}/{x}.{format}';
-
-      // config attributes for blue marble layer
-      const blueMarble = new L.tileLayer(nasaUrl, {
-        attribution: nasaAttrib,
-        attributionControl: false,
-        tileSize: 512,
-        layer: 'BlueMarble_ShadedRelief_Bathymetry',
-        tileMatrixSet: '500m',
-        format: 'jpg',
-      });
-
-      STATE.map = new L.Map('map', {
-        crs: EPSG3031,
-        minZoom: 0.48,
-        maxZoom: 4, // because nasa data has only five zoom levels
-      });
-
-      STATE.map.setView(new L.LatLng(-90, 0), 0);
-      STATE.map.addLayer(blueMarble);
-      let outputDiv = document.getElementById('widget');
-      STATE.baseLayer = blueMarble;
-
-      const map = document.getElementById('map');
-
-      $('#exportButton').click(function (element) {
-        html2canvas(document.body).then(function (canvas) {
-          canvas.toBlob(function (blob) {
-            saveAs(blob, 'pretty image.png');
-          });
-        });
+      let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      let osmAttrib =
+        'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+      let osmBase = L.tileLayer(osmUrl, { attribution: osmAttrib });
+      STATE.map = L.map('map', {
+        center: [0, 0],
+        zoom: 2,
+        layers: [osmBase],
       });
     });
-  addResizeListeners();
 }

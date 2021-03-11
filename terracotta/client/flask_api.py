@@ -1,6 +1,7 @@
+import os
 from typing import Any
+from flask import Flask, render_template, current_app, Blueprint, json, jsonify, send_file, request, Response
 
-from flask import Flask, render_template, current_app, Blueprint
 
 client_api = Blueprint('client_api', 'terracotta.client')
 
@@ -10,6 +11,15 @@ def get_map() -> Any:
     return render_template(
         'app.html', hostname=current_app.config['terracotta_hostname']
     )
+
+
+@client_api.route('/getJsonFile/<jsonFile>', methods=['GET'])
+def getBandNames(jsonFile):
+    filename = os.path.join(current_app.static_folder, 'data', jsonFile + '.json')
+    with open(filename) as json_file:
+        data = json.load(json_file)
+
+    return jsonify(data)
 
 
 def create_app(hostname: str) -> Flask:
