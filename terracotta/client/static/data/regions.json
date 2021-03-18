@@ -4,150 +4,400 @@
     "id": 1,
     "subregions": [
       {
-        "name": "Asgard Range",
+        "name": "McMurdo Dry Valleys",
         "id": 2,
         "subregions": [
           {
-            "name": "Mt. Newall",
-            "id": 3
+            "name": "Asgard Range",
+            "id": 2,
+            "subregions": [
+              {
+                "name": "Mt. Newall",
+                "coordinates": [-77.500714, 162.721438],
+                "id": 3
+              },
+              {
+                "name": "Round Mountain",
+                "coordinates": [-77.674082, 161.105474],
+                "id": 4
+              }
+            ]
           },
           {
-            "name": "Round Mountain",
-            "id": 4
-          }
-        ]
-      },
-      {
-        "name": "Ferrar Glacier",
-        "id": 5,
-        "subregions": [
-          {
-            "name": "Kukri Hills",
-            "id": 6
-          },
-          {
-            "name": "Briggs Hills",
-            "id": 7
-          },
-          {
-            "name": "Thomas Heights",
-            "id": 8
-          }
-        ]
-      },
-      {
-        "name": "Kukri Hills",
-        "id": 9,
-        "subregions": [
-          {
-            "name": "Mt Coates",
-            "id": 10
-          }
-        ]
-      },
-      {
-        "name": "Quartermain Mountain",
-        "id": 11,
-        "subregions": [
-          {
-            "name": "Beacon Valley",
-            "id": 12
-          },
-          {
-            "name": "Pivot Peak",
-            "id": 13
-          }
-        ]
-      },
-      {
-        "name": "Royal Society Range",
-        "id": 14,
-        "subregions": [
-          {
-            "name": "Garwood Valley",
-            "id": 15
-          },
-          {
-            "name": "Miers Valley",
-            "id": 16
-          },
-          {
-            "name": "Heald Island",
-            "id": 17
-          },
-          {
-            "name": "Blue Glacier",
-            "id": 18
-          },
-          {
-            "name": "Mt. Rucker",
-            "id": 19
-          },
-          {
-            "name": "Trough Lake",
-            "id": 20
-          },
-          {
-            "name": "Mt. Huggins",
-            "id": 21
-          },
-          {
-            "name": "The Spire",
-            "id": 22
-          },
-          {
-            "name": "Table Mountain",
-            "id": 23
-          }
-        ]
-      },
-      {
-        "name": "Taylor Glacier",
-        "id": 24,
-        "subregions": [{ "name": "Northwest Mountain", "id": 25 }]
-      },
-      {
-        "name": "Taylor Valley",
-        "id": 26,
-        "subregions": [
-          {
-            "name": "Northwest Mountain",
-            "id": 27
-          },
-          {
-            "name": "New Harbor",
-            "id": 28
-          },
-          {
-            "name": "Fryxell Basin",
-            "id": 29
+            "name": "Ferrar Glacier",
+            "id": 5,
+            "subregions": [
+              {
+                "name": "Kukri Hills",
+                "id": 6
+              },
+              {
+                "name": "Briggs Hills",
+                "id": 7
+              },
+              {
+                "name": "Thomas Heights",
+                "id": 8
+              }
+            ]
           },
           {
             "name": "Kukri Hills",
-            "id": 30
+            "id": 9,
+            "subregions": [
+              {
+                "name": "Mt Coates",
+                "id": 10
+              }
+            ]
           },
           {
-            "name": "Hoare Basin",
-            "id": 31
+            "name": "Quartermain Mountain",
+            "id": 11,
+            "subregions": [
+              {
+                "name": "Beacon Valley",
+                "id": 12
+              },
+              {
+                "name": "Kennar Valley",
+                "id": 12
+              },
+              {
+                "name": "Arena Valley",
+                "id": 12
+              },
+              {
+                "name": "Pivot Peak",
+                "id": 13
+              }
+            ]
+          },
+          {
+            "name": "Royal Society Range",
+            "id": 14,
+            "subregions": [
+              {
+                "name": "Garwood Valley",
+                "id": 15
+              },
+              {
+                "name": "Miers Valley",
+                "id": 16
+              },
+              {
+                "name": "Heald Island",
+                "id": 17
+              },
+              {
+                "name": "Blue Glacier",
+                "id": 18
+              },
+              {
+                "name": "Mt. Rucker",
+                "id": 19
+              },
+              {
+                "name": "Trough Lake",
+                "id": 20
+              },
+              {
+                "name": "Mt. Huggins",
+                "id": 21
+              },
+              {
+                "name": "The Spire",
+                "id": 22
+              },
+              {
+                "name": "Table Mountain",
+                "id": 23
+              }
+            ]
+          },
+          {
+            "name": "Taylor Valley",
+            "id": 26,
+            "subregions": [
+              {
+                "name": "Northwest Mountain",
+                "id": 27
+              },
+              {
+                "name": "New Harbor",
+                "id": 28
+              },
+              {
+                "name": "Fryxell Basin",
+                "id": 29
+              },
+              {
+                "name": "Kukri Hills",
+                "id": 30
+              },
+              {
+                "name": "Hoare Basin",
+                "id": 31
+              },
+              {
+                "name": "Mummy Pond",
+                "id": 31
+              },
+              {
+                "name": "Bonney Basin",
+                "id": 31
+              },
+              {
+                "name": "Pearse Valley",
+                "id": 31
+              },
+              {
+                "name": "Simmons Lake",
+                "id": 31
+              },
+              {
+                "name": "Friis Hills",
+                "id": 31
+              }
+            ]
+          },
+          {
+            "name": "Wright Valley",
+            "id": 36,
+            "subregions": [
+              {
+                "name": "The Labyrinth",
+                "id": 37
+              },
+              {
+                "name": "The Dais",
+                "id": 37
+              },
+              {
+                "name": "South Fork",
+                "id": 37
+              },
+              {
+                "name": "North Fork",
+                "id": 37
+              },
+              {
+                "name": "Koenig Valley",
+                "id": 37
+              },
+              {
+                "name": "Panorama Peak",
+                "id": 37
+              },
+              {
+                "name": "Lake Vanda",
+                "id": 37
+              },
+              {
+                "name": "Meserve Glacier",
+                "id": 37
+              },
+              {
+                "name": "Lake Brownworth",
+                "id": 37
+              }
+            ]
+          },
+          {
+            "name": "Bull Pass",
+            "id": 36,
+            "subregions": [
+              {
+                "name": "Bull Pass",
+                "id": 37
+              }
+            ]
+          },
+          {
+            "name": "Victoria Valley",
+            "id": 36,
+            "subregions": [
+              {
+                "name": "Lower Victoria",
+                "id": 37
+              },
+              {
+                "name": "Lake Vida",
+                "id": 37
+              },
+              {
+                "name": "Upper Victoria",
+                "id": 37
+              }
+            ]
+          },
+          {
+            "name": "Barwick Valley",
+            "id": 36,
+            "subregions": [
+              {
+                "name": "Upper Barwick",
+                "id": 37
+              },
+              {
+                "name": "Lower Barwick",
+                "id": 37
+              }
+            ]
+          },
+          {
+            "name": "Balham Valley",
+            "id": 36,
+            "subregions": [
+              {
+                "name": "Balham Valley",
+                "id": 37
+              }
+            ]
+          },
+          {
+            "name": "McKelvey Valley",
+            "id": 36,
+            "subregions": [
+              {
+                "name": "Upper McKelvey",
+                "id": 37
+              },
+              {
+                "name": "Lower McKelvey",
+                "id": 37
+              },
+              {
+                "name": "Halzen Mesa",
+                "id": 37
+              }
+            ]
           }
         ]
-      },
+      }
+    ]
+  },
+  {
+    "name": "CentralTransantarcticMountains",
+    "id": 1,
+    "subregions": [
       {
-        "name": "Willett Range",
-        "id": 32,
-        "subregions": [
-          { "name": "Head Mountains", "id": 33 },
-          { "name": "Apocolypse Peaks", "id": 34 },
-          { "name": "Shapeles Mountain", "id": 35 }
-        ]
-      },
-      {
-        "name": "Wright Valley",
-        "id": 36,
+        "name": "ShackletonGlacier",
+        "id": 108,
         "subregions": [
           {
-            "name": "Mt. Fleming",
-            "id": 37
+            "name": "Roberts Massif",
+            "id": 109,
+            "subregions": [
+              {
+                "name": "Roberts Massif",
+                "id": 110
+              }
+            ]
+          },
+          {
+            "name": "Mount Black",
+            "id": 111,
+            "subregions": [
+              {
+                "name": "BennettPlatform",
+                "id": 112
+              },
+              {
+                "name": "KitchingRidge",
+                "id": 150
+              }
+            ]
+          },
+          {
+            "name": "VickersNunatak",
+            "id": 113,
+            "subregions": [
+              {
+                "name": "VickersNunatak",
+                "id": 114
+              }
+            ]
+          },
+          {
+            "name": "CumulusHills",
+            "id": 191,
+            "subregions": [
+              {
+                "name": "WestBluff",
+                "id": 192
+              },
+              {
+                "name": "SchroederHill",
+                "id": 193
+              },
+              {
+                "name": "EllisBluff",
+                "id": 194
+              },
+              {
+                "name": "CollinsonRidge",
+                "id": 195
+              },
+              {
+                "name": "ShenkPeak",
+                "id": 196
+              },
+              {
+                "name": "CheuValley",
+                "id": 197
+              },
+              {
+                "name": "GatlinGlacier",
+                "id": 198
+              }
+            ]
+          },
+          {
+            "name": "ShackletonGlacier",
+            "id": 115,
+            "subregions": [
+              {
+                "name": "MountHeekin",
+                "id": 116
+              },
+              {
+                "name": "PendantRidge",
+                "id": 117
+              },
+              {
+                "name": "ThanksgivingPoint",
+                "id": 119
+              },
+              {
+                "name": "ThanksgivingPoint",
+                "id": 120
+              },
+              {
+                "name": "MountGreenlee",
+                "id": 121
+              },
+              {
+                "name": "TaylorNunatak",
+                "id": 123
+              },
+              {
+                "name": "MountCole",
+                "id": 125
+              },
+              {
+                "name": "MountSpeed",
+                "id": 127
+              },
+              {
+                "name": "NilsenPeak",
+                "id": 129
+              },
+              {
+                "name": "MountWendland",
+                "id": 131
+              }
+            ]
           }
         ]
       }

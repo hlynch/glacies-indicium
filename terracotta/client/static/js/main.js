@@ -302,12 +302,12 @@ function getSelectedBandLayer(radioButtons) {
 
   let keys = [];
 
-  const currentRegion =
+  let currentRegion =
     $('#search-results .text-primary').attr('id') ||
     $('#search-results li:eq(0)').prop('id');
 
   keys.push({ key: 'band', value: selectedBands[0] });
-  keys.push({ key: 'region', value: currentRegion });
+  keys.push({ key: 'region', value: currentRegion.split('/')[0] });
 
   const datasetURL = assembleDatasetURL(
     STATE.remote_host,
@@ -582,7 +582,9 @@ function toggleDatasetMouseover(element) {
   if (STATE.overlayLayer != null) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
-  const layer_id = element.target.id;
+
+  const layer_id = element.target.id.split('/')[0];
+
   const selected_band =
     $('input[name="bandRadioButon"]:checked').val() ||
     $('input[name="bandRadioButon"]:eq(0)').prop('id');
@@ -644,7 +646,7 @@ function updateExportButtonLink(fileName) {
 }
 
 /**
- * Switch current active layer to the given singleband dataset.bhgn mj,
+ * Switch current active layer to the given singleband dataset
  *
  * @param {Array<string>} ds_keys Keys of new layer
  * @param {boolean} resetView Fly to new dataset if not already on screen
@@ -658,7 +660,8 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
     $('input[name="bandRadioButon"]:eq(0)').prop('checked', true);
   }
 
-  const currentDataArray = [currentRegion, selected_band];
+  const regionName = currentRegion.split('/')[0];
+  const currentDataArray = [regionName, selected_band];
 
   const regionKey = serializeKeys(currentDataArray);
 
@@ -913,14 +916,14 @@ function createMetadataArray(region, bandName) {
 function createListElement(content) {
   const listElement = document.createElement('li');
   const reducedName = content.name.split(' ').join('');
-
+  const listElementId = reducedName + '/' + content.id;
   listElement.innerHTML = content.name;
-  listElement.id = reducedName;
+  listElement.id = listElementId;
   listElement.classList.add('clickable');
 
   listElement.addEventListener(
     'click',
-    toggleSinglebandMapLayer.bind(null, reducedName)
+    toggleSinglebandMapLayer.bind(null, listElementId)
   );
   listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
   listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
