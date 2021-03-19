@@ -33,7 +33,7 @@ First, make sure you have all the required tools installed on your local machine
 git clone https://github.com/mlgarrett/glacies-indicium/
 
 # Enter into the directory
-cd glaciesIndiciumDiscordBot/
+cd glacies-indicium/glaciesIndiciumDiscordBot/
 
 # Install the dependencies
 npm install
@@ -50,7 +50,3 @@ After cloning the project and installing all dependencies, you need to add your 
 ```bash
 node bot.js
 ```
-
-## Run
-
-$ node bot.js

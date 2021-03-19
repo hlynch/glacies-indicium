@@ -1,19 +1,3 @@
-/// <reference path='./types/leaflet.d.ts' />
-/// <reference path='./types/no-ui-slider.d.ts' />
-/// <reference path='./types/main.d.ts' />
-
-/* BEWARE! THERE BE DRAGONS! 🐉
-
-Big parts of following file were written by a Python programmer with minimal exposure
-to idiomatic Javascript. It should not serve as an authoritive reference on how a
-frontend for Terracotta should be written.
-*/
-
-/*
-Some notes:
-- methods marked with @global are expected to be available in the DOM (i.e. app.html).
-*/
-
 // ===================================================
 // Constants
 // ===================================================
@@ -293,7 +277,7 @@ function createBandInputs(bandNames) {
 /**
  *Gets current selected band from radio buttons.
  *
- * @param {Array<HtmlElement} radioButtons
+ * @param {Array<Element>} radioButtons List of all radio buttons in the DOM.
  */
 function getSelectedBandLayer(radioButtons) {
   const selectedBands = Array.from(radioButtons)
@@ -339,8 +323,8 @@ function resetRadioButtons() {
 
 /**
  * Parses json list of regions and creates nested menu
- * @param {JSON} regions
- * @param {HTML Element} container
+ * @param {JSON} regions List of all regions availible from data
+ * @param {Element} container Parent element of current region
  */
 function buildRegionTree(regions, bands, container) {
   regions.forEach((region) => {
@@ -431,14 +415,14 @@ function renderErrors(errors) {
   const errorHtml = errors
     .map(
       (error, index) => `
-            <li>
-                ${error.text} <br/>
-                <small>${error.url}</small>
-                <span onclick='dismissError.call(null, ${index})'>
-                    ×
-                </span>
-            </li>
-        `
+           <li>
+               ${error.text} <br/>
+               <small>${error.url}</small>
+               <span onclick='dismissError.call(null, ${index})'>
+                   ×
+               </span>
+           </li>
+       `
     )
     .join('');
   document.querySelector('#errors').innerHTML = errorHtml;
@@ -713,8 +697,8 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
 
 /**
  * Checks how much of area is in screen to determine zooming behavior
- * @param {Array[number]} dsBounds bounding box of TC dataset [w, s, e, n]
- * @param {Array[number]} screenBounds bouding box of user's screen [w, s, e, n]
+ * @param {Array<number>} dsBounds bounding box of TC dataset [w, s, e, n]
+ * @param {Array<number>} screenBounds bouding box of user's screen [w, s, e, n]
  *
  * @return {number} ratio of screen covered by dataset in range (0, 1)
  */
