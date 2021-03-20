@@ -1,9 +1,11 @@
 # GLACIES INDICIUM
+
 Welcome to the code repository for Team Glacies Indicium at NAU.
 
 You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021/GlaciesIndicium-F20/) to learn more about our project.
 
 # HOW TO GET SET UP
+
 1. Install Anaconda and the git tool on your machine.
 
 - On Windows: Use the Start Menu to find and open the Anaconda/Miniconda command prompt/terminal.
@@ -21,6 +23,7 @@ You can visit our [Team Website](https://ceias.nau.edu/capstone/projects/CS/2021
 6. Activate the virtual environment with `conda activate terracotta`. You should now be able to run terracotta commands, like `terracotta --help`.
 
 # ATTRIBUTION
+
 This project is based on the open-source project Terracotta, a Python-based GeoTIFF data exploration tool. The original Terracotta readme information can be found below.
 
 ---
@@ -44,7 +47,7 @@ and [Rasterio](https://github.com/mapbox/rasterio).
   projections you want to have a look at in your browser?
   `terracotta serve -r {name}.tif` and
   `terracotta connect localhost:5000` get you there.
-- We make minimal assumptions about your data, so *you stay in charge*.
+- We make minimal assumptions about your data, so _you stay in charge_.
   Keep using the tools you know and love to create and organize your
   data, Terracotta serves it exactly as it is.
 - Serverless deployment is a first-priority use case, so you don’t have
@@ -96,6 +99,7 @@ $ terracotta serve -d greenland.sqlite
 #### Manually
 
 You can use any HTTP-capable client, such as `curl`.
+
 ```bash
 $ curl localhost:5000/datasets?tile=25XEL
 {"page":0,"limit":100,"datasets":[{"date":"20170831","tile":"25XEL","band":"B02"},{"date":"20170831","tile":"25XEL","band":"B03"},{"date":"20170831","tile":"25XEL","band":"B04"}]}
@@ -106,6 +110,7 @@ Modern browsers (e.g. Chrome or Firefox) will render the JSON as a tree.
 #### Interactively
 
 Terracotta also includes a web client. You can start the client (assuming the server is running at http://localhost:5000) using
+
 ```bash
 $ terracotta connect localhost:5000
  * Serving Flask app "terracotta.client" (lazy loading)
