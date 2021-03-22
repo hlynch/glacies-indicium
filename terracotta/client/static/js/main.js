@@ -15,23 +15,7 @@ const errorProxy = (arr) =>
     },
   });
 
-const rgbStretchProxy = (arr) =>
-  new Proxy(arr, {
-    set: (target, property, value) => {
-      target[property] = value;
-      return true;
-    },
-  });
-
-const singlebandStretchProxy = (arr) =>
-  new Proxy(arr, {
-    set: (target, property, value) => {
-      target[property] = value;
-      return true;
-    },
-  });
-
-const DATASETS_PER_PAGE = 16;
+const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
   { displayName: 'Greyscale', id: 'greys_r' },
@@ -83,50 +67,48 @@ function getKeys(remoteHost) {
  * @param {string} remoteHost
  * @param {Array<Terracotta.IKeyConstraint>} key_constraints Key/val pairs of constraints.
  * @param {number} limit Items per page
- * @param {number} page Page number
  *
  * @return {string} dataset URL.
  */
-function assembleDatasetURL(remoteHost, key_constraints, limit, page) {
-  let request_url = `${remoteHost}/datasets?limit=${limit}&page=${page}`;
+function assembleDatasetURL(key_constraints, limit) {
+  let request_url = `${STATE.remoteHost}/datasets?limit=${limit}&page=${STATE.currentDatasetPage}`;
 
-  for (let i = 0; i < key_constraints.length; i++) {
-    request_url += `&${key_constraints[i].key}=${key_constraints[i].value}`;
+  for (let index = 0; index < key_constraints.length; index++) {
+    request_url += `&${key_constraints[index].key}=${key_constraints[index].value}`;
   }
+
   return request_url;
 }
 
 /**
- * @param {string} remoteHost
  * @param {Array<string>} dsKeys Dataset keys i.e. [<type>, <date>, <id>, <band>].
  *
  * @return {string} metadata URL.
  */
-function assembleMetadataURL(remoteHost, dsKeys) {
-  let request_url = `${remoteHost}/metadata`;
-  for (let i = 0; i < dsKeys.length; i++) {
-    request_url += `/${dsKeys[i]}`;
+function assembleMetadataURL(dsKeys) {
+  let request_url = `${STATE.remoteHost}/metadata`;
+  for (let index = 0; index < dsKeys.length; index++) {
+    request_url += `/${dsKeys[index]}`;
   }
   return request_url;
 }
 
 /**
- * @param {string} remoteHost
  * @param {Array<string>} keys
  * @param {Terracotta.IOptions} [options]
  * @param {boolean} [preview]
  *
  * @return {string} singleband URL.
  */
-function assembleSinglebandURL(remoteHost, keys, options, preview) {
+function assembleSinglebandURL(keys, options, preview) {
   let request_url;
 
   if (preview) {
-    request_url = `${remoteHost}/singleband/${keys.join(
+    request_url = `${STATE.remoteHost}/singleband/${keys.join(
       '/'
     )}/preview.png?tile_size=${JSON.stringify(THUMBNAIL_SIZE)}`;
   } else {
-    request_url = `${remoteHost}/singleband/${keys.join('/')}/{z}/{x}/{y}.png`;
+    request_url = `${STATE.remoteHost}/singleband/${keys.join('/')}/{z}/{x}/{y}.png`;
   }
 
   if (options == null) return request_url;
@@ -144,42 +126,6 @@ function assembleSinglebandURL(remoteHost, keys, options, preview) {
   }
 
   updateComputedUrl(request_url, keys);
-  return request_url;
-}
-
-/**
- * @param {string} remoteHost
- * @param {Array<string>} first_keys
- * @param {Array<string>} rgb_keys
- * @param {Terracotta.IOptions} options
- * @param {boolean} preview
- *
- * @return {string} rgb URL.
- */
-function assembleRgbUrl(remoteHost, first_keys, rgb_keys, options, preview) {
-  let request_url = `${remoteHost}/rgb/`;
-
-  if (first_keys.length > 0) {
-    request_url += `${first_keys.join('/')}/`;
-  }
-
-  if (preview) {
-    request_url += `preview.png?tile_size=${JSON.stringify(THUMBNAIL_SIZE)}`;
-  } else {
-    request_url += '{z}/{x}/{y}.png';
-  }
-
-  const [r, g, b] = rgb_keys;
-  request_url += `?r=${r}&g=${g}&b=${b}`;
-
-  if (!options) {
-    return request_url;
-  }
-
-  for (let option_key in options) {
-    if (!options.hasOwnProperty(option_key)) continue;
-    request_url += `&${option_key}=${options[option_key]}`;
-  }
   return request_url;
 }
 
@@ -248,7 +194,6 @@ function initUI(remoteHost, keys) {
   }
 
   updateColormap();
-  removeSpinner();
 }
 
 /**
@@ -285,19 +230,14 @@ function getSelectedBandLayer(bandRadioButtons) {
   let keys = [];
 
   let currentRegion =
-    $('#search-results .text-primary').attr('id') ||
+    $('#search-results .text-primary').attr('id') ??
     $('#search-results li:eq(0)').prop('id');
 
   STATE.activeBandKey = activeBandKey;
   keys.push({ key: 'band', value: activeBandKey });
   keys.push({ key: 'region', value: currentRegion.split('/')[0] });
 
-  const datasetURL = assembleDatasetURL(
-    STATE.remoteHost,
-    keys,
-    DATASETS_PER_PAGE,
-    STATE.currentDatasetPage
-  );
+  const datasetURL = assembleDatasetURL(keys, DATASETS_PER_PAGE);
 
   httpGet(datasetURL).then((res) => {
     const firstResult = res.datasets[0];
@@ -418,7 +358,7 @@ function renderErrors(errors) {
                ${error.text} <br/>
                <small>${error.url}</small>
                <span onclick='dismissError.call(null, ${index})'>
-                   ×
+                   x
                </span>
            </li>
        `
@@ -439,36 +379,25 @@ function dismissError(errorIndex) {
 /**
  * Handle search results and singleband layers.
  *
- * @param {Array<Terracotta.IKey>} keys The keys to update results for.
  */
-function updateSearchResults(remoteHost = STATE.remoteHost, keys = STATE.keys) {
-  // initialize table header for search results
-  const regionList = document.getElementById('search-results');
-  regionList.innerHTML = '';
+function updateSearchResults() {
+  $('#search-results').html('');
 
-  // get key constraints from UI
   let key_constraints = [];
 
-  const datasetUrl = assembleDatasetURL(
-    STATE.remoteHost,
-    key_constraints,
-    DATASETS_PER_PAGE,
-    STATE.currentDatasetPage
-  );
+  const datasetUrl = assembleDatasetURL(key_constraints, DATASETS_PER_PAGE);
 
   return httpGet(datasetUrl).then((res) => {
-    updateDatasetList(remoteHost, res.datasets);
+    updateDatasetList(res.datasets);
   });
 }
 
 /**
  * Refreshes the dataset list.
  *
- * @param {string} remoteHost
  * @param {Array<Terracotta.IDataset>} datasets
- * @param {Array<Terracotta.IKey>} keys
  */
-function updateDatasetList(remoteHost = STATE.remoteHost, datasets, keys) {
+function updateDatasetList(datasets) {
   const regionContainer = $('#search-results');
   const dataSetFileName = 'alphaPrototypeMockData';
 
@@ -476,14 +405,7 @@ function updateDatasetList(remoteHost = STATE.remoteHost, datasets, keys) {
     buildRegionTree(data, datasets, regionContainer);
   });
 
-  addListMargin();
-}
-
-/**
- * Finds the first list element and add margin to increase whitespace.
- */
-function addListMargin() {
-  $('#search-results ul:eq(0)').addClass('ml-20');
+  removeSpinner();
 }
 
 /**
@@ -519,12 +441,10 @@ function updatePageControls() {
 
 /**
  * Triggered by a change in the colormap selector in app.html.
+ *
  * @global
  */
 function updateColormap() {
-  /**
-   * @type {HTMLSelectElement}
-   */
   const colormapSelector = document.querySelector('select#colormap-selector');
   STATE.currentColormap = colormapSelector.selectedOptions[0].value;
 
@@ -552,9 +472,8 @@ function toggleDatasetMouseover(element) {
 
   const layer_id = element.target.id.split('/')[0];
 
-  const selectedBand = STATE.activeBandKey
-    ? STATE.activeBandKey
-    : $('input[name="bandRadioButton"]').prop('id');
+  const selectedBand =
+    STATE.activeBandKey ?? $('input[name="bandRadioButton"]').prop('id');
 
   const key = serializeKeys([layer_id, selectedBand]);
 
@@ -571,8 +490,16 @@ function toggleDatasetMouseover(element) {
   }).addTo(STATE.map);
 }
 
+function toggleDarkMode() {
+  halfmoon.toggleDarkMode();
+
+  $('#viewModeIcon').toggleClass('fa-moon');
+  $('#viewModeIcon').toggleClass('fa-sun');
+}
+
 /**
  * Removes overlay from map after hover
+ *
  * @param {HTMLElement} datasetTable
  */
 function toggleDatasetMouseleave() {
@@ -587,17 +514,11 @@ function toggleDatasetMouseleave() {
  * @param {boolean} resetView
  */
 function toggleSinglebandMapLayer(currentRegion, resetView = true) {
-  let currentKeys;
-
-  if (STATE.activeSinglebandLayer) {
-    currentKeys = STATE.activeSinglebandLayer.keys;
-  }
-
-  showResetButton();
+  showRegionButtons();
   resetLayerState();
 
   const currentBand =
-    $('input[name="bandRadioButton"]:checked').val() ||
+    $('input[name="bandRadioButton"]:checked').val() ??
     $('input[name="bandRadioButton"]:eq(0)').val();
 
   const fileName = currentRegion.split('/')[0] + '_' + currentBand + '.tif';
@@ -612,7 +533,7 @@ function toggleSinglebandMapLayer(currentRegion, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#exportButton').attr('href', `/static/mosaics/optimized/${fileName}`);
+  $('#export-button').attr('href', `/static/mosaics/optimized/${fileName}`);
 }
 
 /**
@@ -624,12 +545,13 @@ function updateExportButtonLink(fileName) {
 function updateSinglebandLayer(currentRegion, resetView = true) {
   removeRasterLayer();
 
-  const selectedBand = STATE.activeBandKey
-    ? STATE.activeBandKey
-    : $('input[name="bandRadioButton"]:eq(0)').prop('id');
+  let selectedBand;
 
-  if ($('input[name="bandRadioButton"]:checked').length === 0) {
+  if (STATE.activeBandKey === undefined) {
+    selectedBand = $('input[name="bandRadioButton"]:eq(0)').prop('id');
     $('input[name="bandRadioButton"]:eq(0)').prop('checked', true);
+  } else {
+    selectedBand = STATE.activeBandKey;
   }
 
   const regionName = currentRegion.split('/')[0];
@@ -645,11 +567,7 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
   if (STATE.currentSinglebandStretch) {
     layerOptions.stretch_range = JSON.stringify(STATE.currentSinglebandStretch);
   }
-  const layerUrl = assembleSinglebandURL(
-    STATE.remoteHost,
-    currentDataArray,
-    layerOptions
-  );
+  const layerUrl = assembleSinglebandURL(currentDataArray, layerOptions);
 
   STATE.activeSinglebandLayer = {
     keys: regionKey,
@@ -659,8 +577,7 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
   $('#search-results .text-primary').removeClass('text-primary');
 
   const datasetLayer =
-    document.getElementById(`${currentRegion}`) ||
-    $('#search-results li:eq(0)');
+    document.getElementById(currentRegion) ?? $('#search-results li:eq(0)');
 
   datasetLayer.classList.add('text-primary');
 
@@ -692,13 +609,11 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
 function calcScreenCovered(dsBounds, screenBounds) {
   const xOverlap = Math.max(
     0,
-    Math.min(dsBounds[2], screenBounds[2]) -
-      Math.max(dsBounds[0], screenBounds[0])
+    Math.min(dsBounds[2], screenBounds[2]) - Math.max(dsBounds[0], screenBounds[0])
   );
   const yOverlap = Math.max(
     0,
-    Math.min(dsBounds[3], screenBounds[3]) -
-      Math.max(dsBounds[1], screenBounds[1])
+    Math.min(dsBounds[3], screenBounds[3]) - Math.max(dsBounds[1], screenBounds[1])
   );
   const overlapArea = xOverlap * yOverlap;
   const screenArea =
@@ -723,7 +638,7 @@ function resetLayerState(resetAllButtons) {
   removeRasterLayer();
 
   if (resetAllButtons) {
-    hideResetButton();
+    hideRegionButtons();
     resetbandRadioButtons();
   }
 
@@ -777,22 +692,17 @@ function updateMetadataText(metadata) {
     return;
   }
   metadataField.style.display = 'block';
-  metadataField.innerHTML =
-    '<span class="bold text-primary">current metadata -</span> ';
-  if (metadata.mean)
-    metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
+  metadataField.innerHTML = '<span class="bold text-primary">current metadata -</span> ';
+  if (metadata.mean) metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
   if (metadata.range)
     metadataField.innerHTML += ` range: ${JSON.stringify(metadata.range)}`;
-  if (metadata.stdev)
-    metadataField.innerHTML += ` stdev: ${metadata.stdev.toFixed(2)}`;
+  if (metadata.stdev) metadataField.innerHTML += ` stdev: ${metadata.stdev.toFixed(2)}`;
   if (metadata.valid_percentage)
     metadataField.innerHTML += ` valid_percentage: ${metadata.valid_percentage.toFixed(
       2
     )}`;
   if (Object.keys(metadata.metadata).length > 0)
-    metadataField.innerHTML += ` metadata: ${JSON.stringify(
-      metadata.metadata
-    )}`;
+    metadataField.innerHTML += ` metadata: ${JSON.stringify(metadata.metadata)}`;
 }
 
 /**
@@ -812,24 +722,29 @@ function toggleLayerInfo() {
   const layerContent = document.getElementById('layerInfo__container--content');
   const layerToggle = document.getElementById('layerInfo__toggle--icon');
   layerToggle.innerHTML = layerToggle.innerHTML === '×' ? 'i' : '×';
-  layerContent.style.display =
-    layerContent.style.display === 'block' ? 'none' : 'block';
+  layerContent.style.display = layerContent.style.display === 'block' ? 'none' : 'block';
 }
 
 /**
- * Hides reset button
+ * Hides reset and export buttons
  */
-function hideResetButton() {
+function hideRegionButtons() {
   $('#clear-button').addClass('d-none');
   $('#clear-button').removeClass('d-inline-block');
+
+  $('#export-button').addClass('d-none');
+  $('#export-button').removeClass('d-inline-block');
 }
 
 /**
- * Displays reset button
+ * Displays reset and export buttons
  */
-function showResetButton() {
+function showRegionButtons() {
   $('#clear-button').removeClass('d-none');
   $('#clear-button').addClass('d-inline-block');
+
+  $('#export-button').removeClass('d-none');
+  $('#export-button').addClass('d-inline-block');
 }
 
 /**
@@ -837,25 +752,6 @@ function showResetButton() {
  */
 function removeSpinner() {
   document.getElementById('loader__container').style.display = 'none';
-}
-
-/**
- *  Resizes map and sidebar, repositions resize bar
- */
-function resize(e) {
-  const sidebar = document.getElementById('controls');
-  const resizeBuffer = document.getElementById('resizable__buffer');
-  const map = document.getElementById('map');
-  const panel = document.getElementById('resizable__buffer');
-
-  const dx = e.x - STATE.mPos;
-  STATE.mPos = e.x;
-
-  let posX = parseInt(getComputedStyle(panel, '').marginLeft) + dx + 'px';
-  sidebar.style.width =
-    parseInt(getComputedStyle(panel, '').marginLeft) + dx - 50 + 'px';
-  resizeBuffer.style.marginLeft = posX;
-  map.style.left = posX;
 }
 
 /**
@@ -869,9 +765,9 @@ function createMetadataArray(region, bandName) {
   currentRegionMetaData.push(region.split(' ').join(''));
   currentRegionMetaData.push(bandName);
 
-  httpGet(
-    assembleMetadataURL(STATE.remoteHost, currentRegionMetaData)
-  ).then((metadata) => storeMetadata(metadata));
+  httpGet(assembleMetadataURL(currentRegionMetaData)).then((metadata) =>
+    storeMetadata(metadata)
+  );
 
   return currentRegionMetaData;
 }

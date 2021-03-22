@@ -71,9 +71,7 @@ function getRedditPost(messageObject) {
         link: post.url,
         redditLink: 'https://www.reddit.com' + post.permalink,
         img:
-          typeof post.preview !== 'undefined'
-            ? post.preview.images[0].source.url
-            : null,
+          typeof post.preview !== 'undefined' ? post.preview.images[0].source.url : null,
         title: post.title,
       }))
     )

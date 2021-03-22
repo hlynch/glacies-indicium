@@ -59,8 +59,9 @@ input[type='text'] {
 img.header {
   width: 100%;
   min-width: 250px;
-  max-width: 350px;
+  max-width: 325px;
   margin-bottom: 15px;
+  display: inline-block;
 }
 
 #map {
@@ -398,4 +399,8 @@ ul#errors {
 .noUi-handle,
 .singleband-slider[disabled] .noUi-handle {
   background-color: #838383;
+}
+
+.fa-info-circle {
+  color: var(--primary-color);
 }
