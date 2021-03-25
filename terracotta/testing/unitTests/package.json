@@ -1,0 +1,19 @@
+{
+  "name": "terracotta-client-unit-testing",
+  "version": "1.0.0",
+  "description": "Runs a suite of tests on main.js file",
+  "scripts": {
+    "build": "babel src/ --out-dir output",
+    "pretest": "npm run build",
+    "test": "jest output/*.test.js"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "jest": "^26.6.3"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.13.10",
+    "@babel/core": "^7.13.10",
+    "@babel/preset-env": "^7.13.12"
+  }
+}

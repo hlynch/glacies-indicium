@@ -19,18 +19,12 @@ const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
   { displayName: 'Greyscale', id: 'greys_r' },
-  { displayName: 'Viridis', id: 'viridis' },
   { displayName: 'Blue-Red', id: 'rdbu_r' },
   { displayName: 'Blue-Green', id: 'bugn' },
-  { displayName: 'Yellow-Green', id: 'ylgn' },
-  { displayName: 'Magma', id: 'magma' },
-  { displayName: 'Earth', id: 'gist_earth' },
-  { displayName: 'Ocean', id: 'ocean' },
 ];
 
 const STATE = {
   keys: [],
-  dsKeys: [],
   errors: errorProxy([]),
   remoteHost: '',
   currentDatasetPage: 0,
@@ -100,15 +94,14 @@ function assembleMetadataURL(dsKeys) {
  *
  * @return {string} singleband URL.
  */
-function assembleSinglebandURL(keys, options, preview) {
+function assembleSinglebandURL(keys, options, preview, remoteHost = STATE.remoteHost) {
   let request_url;
-
   if (preview) {
-    request_url = `${STATE.remoteHost}/singleband/${keys.join(
+    request_url = `${remoteHost}/singleband/${keys.join(
       '/'
     )}/preview.png?tile_size=${JSON.stringify(THUMBNAIL_SIZE)}`;
   } else {
-    request_url = `${STATE.remoteHost}/singleband/${keys.join('/')}/{z}/{x}/{y}.png`;
+    request_url = `${remoteHost}/singleband/${keys.join('/')}/{z}/{x}/{y}.png`;
   }
 
   if (options == null) return request_url;
@@ -226,7 +219,6 @@ function getSelectedBandLayer(bandRadioButtons) {
     .map((i) => i.value);
 
   const activeBandKey = selectedBands[0];
-
   let keys = [];
 
   let currentRegion =
@@ -255,9 +247,8 @@ function getSelectedBandLayer(bandRadioButtons) {
  * Reset the radio buttons
  */
 function resetbandRadioButtons() {
-  if (STATE.activeSinglebandLayer !== undefined) {
+  if (STATE.activeSinglebandLayer !== undefined)
     $('input[type="radio"]').prop('checked', false);
-  }
 }
 
 /**
@@ -401,11 +392,11 @@ function updateDatasetList(datasets) {
   const regionContainer = $('#search-results');
   const dataSetFileName = 'alphaPrototypeMockData';
 
-  httpGet(`/getJsonFile/${dataSetFileName}`).then((data) => {
-    buildRegionTree(data, datasets, regionContainer);
-  });
-
-  removeSpinner();
+  httpGet(`/getJsonFile/${dataSetFileName}`)
+    .then((data) => {
+      buildRegionTree(data, datasets, regionContainer);
+    })
+    .then(removeSpinner());
 }
 
 /**
@@ -466,7 +457,7 @@ function updateColormap() {
  * @param {HTMLElement} datasetTable
  */
 function toggleDatasetMouseover(element) {
-  if (STATE.overlayLayer != null) {
+  if (STATE.overlayLayer !== undefined) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
 
@@ -490,6 +481,10 @@ function toggleDatasetMouseover(element) {
   }).addTo(STATE.map);
 }
 
+/**
+ *  Called in app.html on Dark mode toggle
+ * @global
+ */
 function toggleDarkMode() {
   halfmoon.toggleDarkMode();
 
@@ -514,7 +509,7 @@ function toggleDatasetMouseleave() {
  * @param {boolean} resetView
  */
 function toggleSinglebandMapLayer(currentRegion, resetView = true) {
-  showRegionButtons();
+  showControlButtons();
   resetLayerState();
 
   const currentBand =
@@ -631,7 +626,7 @@ function searchFieldChanged() {
 }
 
 /**
- * Reset all layer state
+ * Reset all layer STATE
  * (remove layers from map, deactivate navigation section, clear info box)
  */
 function resetLayerState(resetAllButtons) {
@@ -691,6 +686,10 @@ function updateMetadataText(metadata) {
     metadataField.style.display = 'none';
     return;
   }
+
+  metadata.range[0] = Number(metadata.range[0].toFixed(2));
+  metadata.range[1] = Number(metadata.range[1].toFixed(2));
+
   metadataField.style.display = 'block';
   metadataField.innerHTML = '<span class="bold text-primary">current metadata -</span> ';
   if (metadata.mean) metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
@@ -739,7 +738,7 @@ function hideRegionButtons() {
 /**
  * Displays reset and export buttons
  */
-function showRegionButtons() {
+function showControlButtons() {
   $('#clear-button').removeClass('d-none');
   $('#clear-button').addClass('d-inline-block');
 
@@ -797,13 +796,10 @@ function createListElement(content) {
  * @param {Object} inputContent
  */
 function createNewbandRadioButton(inputContent) {
-  const inputContentName = inputContent['name'].toLowerCase();
-  const inputGroupName = inputContent['groupName']
-    ? inputContent['groupName']
-    : 'bandRadioButton';
+  const contentName = inputContent['name'].toLowerCase();
 
   let newbandRadioButton = $(
-    `<input type="radio" id='${inputContentName}' value='${inputContentName}' name='${inputGroupName}'></input>`
+    `<input type="radio" id='${contentName}' value='${contentName}' name="bandRadioButton" />`
   );
 
   return newbandRadioButton;
@@ -825,8 +821,8 @@ function createNewInputLabel(inputName, labelContent) {
 function addbandRadioButtonListeners() {
   const bandRadioButtons = document.querySelectorAll('input[type="radio"]');
 
-  bandRadioButtons.forEach((bandRadioButton) => {
-    bandRadioButton.addEventListener('change', () => {
+  bandRadioButtons.forEach((radioButton) => {
+    radioButton.addEventListener('change', () => {
       getSelectedBandLayer(bandRadioButtons);
     });
   });
@@ -862,4 +858,22 @@ function initializeApp(hostname) {
         layers: [osmBase],
       });
     });
+
+  exportModules();
+}
+
+/**
+ * Exports functions necessary for testing when compiled with Node
+ */
+function exportModules() {
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      serializeKeys,
+      assembleSinglebandURL,
+      httpGet,
+      getKeys,
+      compareArray,
+      createListElement,
+    };
+  }
 }

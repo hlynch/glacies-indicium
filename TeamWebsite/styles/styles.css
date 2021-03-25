@@ -5,8 +5,8 @@
 
 @font-face {
   font-family: 'aleo-r';
-  src: url('aleo-regular-webfont.woff2') format('woff2'),
-    url('aleo-regular-webfont.woff') format('woff'),
+  src: url('../aleo-regular-webfont.woff2') format('woff2'),
+    url('../aleo-regular-webfont.woff') format('woff'),
     url('../fonts/aleo-regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
@@ -193,6 +193,7 @@ ol {
 .footer {
   margin-top: auto;
 }
+
 @media only screen and (max-width: 768px) {
   .display-4 {
     font-size: 1.5rem;
@@ -262,6 +263,7 @@ ol {
 .list-group a {
   color: rgb(51, 162, 255) !important;
 }
+
 .list-group a:nth-child(odd) {
   background-color: #f9f9f9;
 }

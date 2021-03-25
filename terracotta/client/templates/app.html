@@ -73,24 +73,28 @@
       </div>
       <hr />
       <div class="el-wrapper border-none mb-10 p-5" id="regionList">
-        <h2 class="content-title d-inline-block">Region Keys</h2>
-        <a
-          class="btn btn-primary d-none ml-10"
-          id="export-button"
-          target="_blank"
-          download
-          role="button"
-        >
-          Export Map
-        </a>
-        <button
-          class="btn btn-danger d-none"
-          id="clear-button"
-          type="button"
-          onclick="resetLayerState(true)"
-        >
-          Reset
-        </button>
+        <h2 class="content-title">Region Keys</h2>
+        <div class="d-inline-flex justify-content-around mb-20">
+          <a
+            class="btn btn-primary btn-sm d-none mr-10"
+            id="export-button"
+            target="_blank"
+            download
+            role="button"
+          >
+            Download Layer
+            <i class="fa fa-download" aria-hidden="true"></i>
+          </a>
+          <button
+            class="btn btn-danger btn-sm d-none"
+            id="clear-button"
+            type="button"
+            onclick="resetLayerState(true)"
+          >
+            Reset Map
+            <i class="fa fa-undo" aria-hidden="true"></i>
+          </button>
+        </div>
         <div id="thumbnail-holder"></div>
         <div class="scrolling-list overflow-y-scroll" id="search-results"></div>
       </div>
