@@ -5,8 +5,8 @@
 
 @font-face {
   font-family: 'aleo-r';
-  src: url('../aleo-regular-webfont.woff2') format('woff2'),
-    url('../aleo-regular-webfont.woff') format('woff'),
+  src: url('../fonts/aleo-regular-webfont.woff2') format('woff2'),
+    url('../fonts/aleo-regular-webfont.woff') format('woff'),
     url('../fonts/aleo-regular.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
