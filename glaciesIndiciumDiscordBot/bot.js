@@ -38,19 +38,19 @@ let timer = setInterval(function () {
   if (now.getDay() == 1) {
     if (now.getUTCHours() - 7 == 15 && now.getUTCMinutes() == 30) {
       client.channels
-        .get(process.env.CHANNEL_ID)
+        .fetch(process.env.CHANNEL_ID)
         .send('@everyone See you guys in one hour!');
     }
   } else if (now.getDay() === 3) {
     if (now.getUTCHours() - 7 == 16 && now.getUTCMinutes() == 30) {
       client.channels
-        .get(process.env.CHANNEL_ID)
+        .fetch(process.env.CHANNEL_ID)
         .send('@everyone See you guys in one hour!');
     }
   } else if (now.getDay() === 5) {
     if (now.getUTCHours() - 7 == 14 && now.getUTCMinutes() == 0) {
       client.channels
-        .get(process.env.CHANNEL_ID)
+        .fetch(process.env.CHANNEL_ID)
         .send('@everyone See you guys in one hour!');
     }
   }

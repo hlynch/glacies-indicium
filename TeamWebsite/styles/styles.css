@@ -289,3 +289,7 @@ ol {
   width: 100%;
   background: none !important;
 }
+
+.card img {
+  height: 95px !important;
+}
