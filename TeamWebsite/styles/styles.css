@@ -39,6 +39,7 @@
   font-style: normal;
 }
 
+/*General Styles*/
 html {
   scroll-behavior: smooth;
 }
@@ -49,6 +50,10 @@ body {
   padding-bottom: 300px;
   padding-top: 76px;
   font-family: 'worksans-r', serif;
+  animation: fadein 2s;
+  -moz-animation: fadein 2s;
+  -webkit-animation: fadein 2s;
+  -o-animation: fadein 2s;
 }
 
 h1,
@@ -82,6 +87,10 @@ ol {
   font-size: 18px;
 }
 
+nav {
+  border-bottom: 1px solid #e6eaea;
+}
+
 .li-p {
   max-width: 100%;
 }
@@ -95,20 +104,18 @@ ol {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.row {
-  max-width: 100%;
-}
-
 .btn {
-  color: white !important;
+  color: #ffffff !important;
   width: 100% !important;
 }
 
-.scrollbtn {
+#arrow-down {
   position: relative;
+  transition: 0.5s;
+  color: #ffffff !important;
 }
 
-.scrollbtn:hover {
+#arrow-down {
   transform: scale(1.25, 1.25);
 }
 
@@ -138,12 +145,23 @@ ol {
 }
 
 .jumbotron-fluid {
-  background-image: url('../images/jumbo-bg.jpg');
+  background-image: linear-gradient(0deg, #00000088 30%, #ffffff44 100%),
+    url('../images/jumbo-bg.jpg');
   background-size: cover;
   height: 100%;
   padding-top: 50px;
   padding-bottom: 75px;
+  color: #ffffff !important;
   text-align: center;
+}
+
+.overlay {
+  position: relative;
+  top: 0;
+  left: 0;
+  background: linear-gradient(0deg, #00000088 30%, #ffffff44 100%) !important;
+  background-size: cover;
+  z-index: 1;
 }
 
 .display-4 {
@@ -159,9 +177,93 @@ ol {
   color: black;
 }
 
+.footer {
+  margin-top: auto;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.fab,
+.fas {
+  color: black;
+  font-size: 24px;
+}
+
+.iframe-container {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+}
+
+.resp-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.dropdrown-link {
+  color: #495057;
+  text-align: inherit;
+  width: 100%;
+  background: none !important;
+}
+
+.card img {
+  height: 95px !important;
+}
+
+.card p {
+  text-align: left;
+}
+
+.technology-card {
+  font-family: 'worksans-r', serif;
+}
+
+.dot {
+  height: 12px;
+  width: 12px;
+  display: inline-block;
+  margin-right: 0.375rem;
+  border-radius: 99px;
+}
+
+.key-container {
+  float: left;
+  margin-right: 2.5rem;
+  font-weight: 300;
+}
+
+/*Specific Styles*/
+#homepage-jumbotron {
+  height: 100vh !important;
+}
+
+#home-about {
+  text-align: left;
+  margin: 0 auto;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  max-width: 60%;
+  margin-bottom: 0;
+  padding: 0 !important;
+  margin-top: 3rem;
+}
+
+#arrow-down {
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+  animation-name: bounce;
+  animation-timing-function: ease-out;
+}
+
 #jumbo-p {
-  background: white;
-  background: rgba(255, 255, 255, 0.7);
+  color: white;
   padding: 30px;
   margin: 0px;
   margin-bottom: 40px;
@@ -190,11 +292,84 @@ ol {
   bottom: 0;
 }
 
-.footer {
-  margin-top: auto;
+#solution-mobile-header {
+  display: none;
+}
+
+.list-group a {
+  color: rgb(51, 162, 255) !important;
+}
+
+.list-group a:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+#demo-link {
+  text-decoration: none !important;
+  transition: 0.5s;
+  font-size: 1rem;
+  border-radius: 500px;
+}
+
+#demo-link:after {
+  content: '»';
+  position: relative;
+  opacity: 0;
+  left: 0.5rem;
+  transition: 0.5s;
+}
+
+#demo-link:hover {
+  padding-right: 24px;
+  padding-left: 8px;
+}
+
+#demo-link:hover:after {
+  opacity: 1;
+  right: 10px;
+}
+
+.key-row {
+  padding: 0 1.25rem;
+  line-height: 60px;
+  border-radius: 4px 4px;
+}
+
+.green .dot {
+  background-color: rgb(129, 169, 19);
+}
+
+.yellow .dot {
+  background-color: #ffbb33;
+}
+.red .dot {
+  background-color: #f53131;
+}
+
+.row-bg-dark {
+  background: #f5f8fd;
+  background-size: cover;
+}
+
+/*Media Breakpoints*/
+@media only screen and (max-width: 600px) {
+  #solution-mobile-header {
+    display: block;
+  }
+  #solution-desktop-header {
+    display: none;
+  }
 }
 
 @media only screen and (max-width: 768px) {
+  #home-about {
+    text-align: center !important;
+  }
+
+  #about-description {
+    max-width: 80%;
+  }
+
   .display-4 {
     font-size: 1.5rem;
   }
@@ -232,7 +407,6 @@ ol {
   }
 }
 
-/* Medium devices (desktops, 992px and up) */
 @media (min-width: 992px) {
   .jumbotron h1 {
     font-size: 4em;
@@ -243,53 +417,82 @@ ol {
   }
 }
 
-/* Large devices (large desktops, 1200px and up) */
 @media (min-width: 1200px) {
   .jumbotron h1 {
     font-size: 6em;
   }
+}
 
-  .dropdown:hover .dropdown-menu {
-    display: block;
+/*Animations*/
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-5px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(0);
   }
 }
 
-.fab,
-.fas {
-  color: black;
-  font-size: 24px;
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.list-group a {
-  color: rgb(51, 162, 255) !important;
+@-moz-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.list-group a:nth-child(odd) {
-  background-color: #f9f9f9;
+@-webkit-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.iframe-container {
-  position: relative;
-  overflow: hidden;
-  padding-top: 56.25%;
+@-o-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.resp-iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
+.animation-element.slide-left {
+  opacity: 0;
+  -moz-transition: all 500ms linear;
+  -webkit-transition: all 500ms linear;
+  -o-transition: all 500ms linear;
+  transition: all 500ms linear;
+  -moz-transform: translate3d(-100px, 0px, 0px);
+  -webkit-transform: translate3d(-100px, 0px, 0px);
+  -o-transform: translate(-100px, 0px);
+  -ms-transform: translate(-100px, 0px);
+  transform: translate3d(-100px, 0px, 0px);
 }
 
-.dropdrown-link {
-  color: #495057;
-  text-align: inherit;
-  width: 100%;
-  background: none !important;
-}
-
-.card img {
-  height: 95px !important;
+.animation-element.slide-left.in-view {
+  opacity: 1;
+  -moz-transform: translate3d(0px, 0px, 0px);
+  -webkit-transform: translate3d(0px, 0px, 0px);
+  -o-transform: translate(0px, 0px);
+  -ms-transform: translate(0px, 0px);
+  transform: translate3d(0px, 0px, 0px);
 }

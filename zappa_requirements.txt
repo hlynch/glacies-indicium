@@ -4,6 +4,7 @@ flask
 flask_cors
 marshmallow>=3.0.0b12
 mercantile
+morecantile
 numpy
 pillow
 shapely

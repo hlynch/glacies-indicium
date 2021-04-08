@@ -8,16 +8,19 @@
     <title>Team Requirements - Glacies Indicium</title>
     <link rel="icon" href="images/favicon.png" type="image/png" />
     <link rel="stylesheet" href="styles/bootstrap.css" />
+    <link rel="stylesheet" href="styles/all.min.css" />
     <link rel="stylesheet" href="styles/styles.css" />
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light fixed-top">
       <a class="navbar-brand" href="index.html">
-        <img src="images/logo.png" height="50" width="50"/> GLACIES INDICIUM</a>
+        <img src="images/logo.png" height="50" width="50" /> GLACIES INDICIUM</a
+      >
       <button
         class="navbar-toggler ml-auto"
         data-toggle="collapse"
-        data-target="#navbarNavDropdown">
+        data-target="#navbarNavDropdown"
+      >
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -27,7 +30,7 @@
             <a class="nav-link" href="index.html">HOME</a>
           </li>
           <li class="nav-item active">
-            <a class="nav-link" href="requirements.html">PROJECT REQUIREMENTS</a>
+            <a class="nav-link" href="requirements.html">REQUIREMENTS</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="documents.html">DOCUMENTS</a>
@@ -37,104 +40,87 @@
               class="nav-link dropdown-toggle"
               data-toggle="dropdown"
               aria-haspopup="true"
-              aria-expanded="false">MORE INFO</a>
+              aria-expanded="false"
+              >MORE INFO</a
+            >
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown09">
               <a class="dropdown-item" href="technologies.html">TECHNOLOGIES</a>
               <a class="dropdown-item" href="schedule.html">SCHEDULE</a>
               <a class="dropdown-item" href="demos.html">DEMOS</a>
             </div>
           </li>
-          <li class="nav-item"> 
-            <a class="navbar-brand" href="https://github.com/mlgarrett/glacies-indicium" target="_blank">
-              <img src="images/github-logo-grey.png" 
-                   onmouseover="this.src='images/github-logo.png';" 
-                   onmouseout="this.src='images/github-logo-grey.png';" 
-                   height="30" 
-                   width="30" 
-                   alt="Github link"/> </a>
+          <li class="nav-item">
+            <a
+              class="navbar-brand"
+              href="https://github.com/mlgarrett/glacies-indicium"
+              target="_blank"
+            >
+              <img
+                src="images/github-logo-grey.png"
+                onmouseover="this.src='images/github-logo.png';"
+                onmouseout="this.src='images/github-logo-grey.png';"
+                height="30"
+                width="30"
+                alt="Github link"
+              />
             </a>
           </li>
         </ul>
       </div>
     </nav>
-    <div class="jumbotron-fluid text-center">
-      <h2>Project Requirements</h2>
+    <div class="jumbotron-fluid text-center" id="requirements-banner">
+      <h1>Project Requirements</h1>
     </div>
 
-    <div class="row justify-content-center">
-      <h3>Requirements</h3>
-    </div>
     <div class="container-fluid text-center">
-      <div class="row text-left">
-        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto">
-          The high level requirements for this project include a query tool that
-          allows users to select different rock types in an array of colors to
-          visualize the landscape of Antarctica. The data acquired in these
-          queries will be possible for download. This allows the scientists our
-          group is working with to access the data from Antarctica, where there
-          is not any internet access. We are also going to have to create a
-          database with the raster images precompressed to allow for shorter
-          load times of the map.
+      <div class="row">
+        <div class="col-12">
+          <h1>
+            Requirements
+            <i class="far fa-check-circle" style="font-size: 36px; margin-left: 1em"></i>
+          </h1>
         </div>
       </div>
-
-      <hr class="my-4" />
-
-      <div class="row justify-content-center p-4">
-        <h1>Envisioned Solution</h1>
-      </div>
-
-      <div class="row text-left">
-        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto">
-          Our solution will contain a map of one of the largest dry valleys, ice
-          free regions, of Antarctica. The plan for the interactive map is to
-          use leaflet because it takes advantage of the coordinate plane from
-          google maps and allows for dynamic viewing. We will have a query tool
-          that allows users to select different rock types and see where they
-          are on the surface of the continent. We will also be creating a
-          backend database with Amazon Web Servers because at the moment there
-          is not currently anything in place. Our database will be constrained
-          based on the 18 lines stored in the original raster images. Since our
-          website allows users to download the data from it, we are going to
-          need an altered version of the raster images. Original images are
-          proprietary information and therefore can not be distributed to the
-          public. The current solution to this problem is to take the confidence
-          intervals for each pixel and create binary data that only shows what
-          type of rock exists there instead of a percent.
+      <div class="row text-left p-4 animation-element slide-left">
+        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto p-4">
+          The high level requirements for this project include a query tool that allows
+          users to select different rock types in an array of colors to visualize the
+          landscape of Antarctica. The data acquired in these queries will also be
+          availible to download. This allows the scientists our group is working with to
+          access the data from Antarctica, where there is not any internet access. We are
+          also going to have to create a database with the raster images precompressed to
+          allow for shorter load times of the map.
         </div>
       </div>
-
-      <hr class="my-4" />
-
-      <div class="jumbotron-fluid text-center m-4">
-        <h1>Resources and Budget</h1>
-      </div>
-
-      <div class="row text-left">
-        <div class="col-md-8 col-sm-12 ml-md-auto mr-md-auto">
-          <ol type="I">
-            <li class="p-2">
-              Amazon Web Services
-              <ol>
-                The client has offered to pay $2-300 to host the website on an
-                Amazon Web Server. This will not be needed until we have a
-                working prototype, however.
-              </ol>
-            </li>
-            <li class="p-2">
-              Monsoon
-              <ol>
-                We potentially will have to gain access to the Monsoon High
-                Performance Computing Cluster if the downsampling is such a
-                computationally heavy task that we would need to parallelize it.
-              </ol>
-            </li>
-          </ol>
+      <div class="row row-bg-dark">
+        <div class="col-md-12 col-xs-12 text-center">
+          <h1>
+            Envisioned Solution
+            <i class="far fa-lightbulb" style="font-size: 36px; margin-left: 1em"></i>
+          </h1>
         </div>
       </div>
-
-    <script src="js/script.js"></script>
+      <div class="row row-bg-dark text-left p-4 animation-element slide-left">
+        <div class="col-md-8 col-xs-12 ml-md-auto mr-md-auto p-4">
+          Our solution will be a web based application that contains a map of one of the
+          largest dry valleys, ice free regions, of Antarctica. The plan for the
+          interactive map is to use Leaflet because it takes advantage of the coordinate
+          plane from google maps and allows for dynamic viewing. We will also have a query
+          tool that allows users to select different rock types and see where they are on
+          the surface of the continent. The website will utilize a backend database
+          created with MySQL and SQLite to store the necessary information. Our database
+          will be constrained based on the 18 lines stored in the original raster images.
+          Since our website allows users to download the data from it, we are going to
+          need an altered version of the raster images. Original images are proprietary
+          information and therefore can not be distributed to the public. The current
+          solution to this problem is to take the confidence intervals for each pixel and
+          create binary data that only shows what type of rock exists there instead of a
+          percent.
+        </div>
+      </div>
+    </div>
     <script src="js/jquery.min.js"></script>
+    <script src="js/script.js"></script>
     <script src="js/bootstrap.min.js"></script>
   </body>
 </html>

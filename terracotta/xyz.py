@@ -1,5 +1,4 @@
 """xyz.py
-
 Utilities to work with XYZ Mercator tiles.
 """
 

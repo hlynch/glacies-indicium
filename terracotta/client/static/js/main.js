@@ -33,7 +33,6 @@ const STATE = {
   currentColormap: '',
   currentSinglebandStretch: [0, 233.1878],
   map: undefined,
-  baseLayer: undefined,
   overlayLayer: undefined,
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
@@ -232,14 +231,16 @@ function getSelectedBandLayer(bandRadioButtons) {
   const datasetURL = assembleDatasetURL(keys, DATASETS_PER_PAGE);
 
   httpGet(datasetURL).then((res) => {
-    const firstResult = res.datasets[0];
-    let resultMetadata = [];
+    if (res.datasets.length > 0) {
+      const firstResult = res.datasets[0];
+      let resultMetadata = [];
 
-    STATE.keys.forEach((bandKey) => {
-      resultMetadata.push(firstResult[bandKey.key]);
-    });
+      STATE.keys.forEach((bandKey) => {
+        resultMetadata.push(firstResult[bandKey.key]);
+      });
 
-    toggleSinglebandMapLayer(currentRegion);
+      toggleSinglebandMapLayer(currentRegion);
+    }
   });
 }
 
@@ -384,6 +385,21 @@ function updateSearchResults() {
 }
 
 /**
+ * Filter regions on
+ */
+function filterRegions(element) {
+  const value = $(element).val().toLowerCase();
+  $('ul li')
+    .hide()
+    .filter(function () {
+      let item = $(this).text().toLowerCase();
+      return item.includes(value);
+    })
+    .closest('li')
+    .show();
+}
+
+/**
  * Refreshes the dataset list.
  *
  * @param {Array<Terracotta.IDataset>} datasets
@@ -469,8 +485,9 @@ function toggleDatasetMouseover(element) {
   const key = serializeKeys([layer_id, selectedBand]);
 
   const metadata = STATE.datasetMetadata[key];
-
   if (!metadata) return;
+
+  console.log(metadata);
 
   STATE.overlayLayer = L.geoJSON(metadata.convex_hull, {
     style: {
@@ -848,6 +865,61 @@ function initializeApp(hostname) {
       STATE.keys = keys;
       initUI(hostname, keys);
       updateSearchResults();
+
+      /*
+      const EPSG3031 = new L.Proj.CRS(
+        'EPSG:3031',
+        '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs',
+        {
+          origin: [-4194304, 4194304],
+          resolutions: [8192.0, 4096.0, 2048.0, 1024.0, 512.0, 256.0],
+          bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
+        }
+      );
+
+      const southWest = L.latLng(-38.94137277935882, -135);
+      const northEast = L.latLng(-38.94137277935882, 45);
+      const bounds = L.latLngBounds(southWest, northEast);
+
+      // create the map
+      STATE.map = L.map('map', {
+        crs: EPSG3031,
+        minZoom: 0,
+        maxZoom: 4, // because nasa data has only five zoom levels
+        maxBounds: bounds,
+      });
+
+      // config attributes for nasa data source
+      const nasaAttrib =
+        "Data Source &copy; <a href='https://www.comnap.aq/SitePages/Home.aspx' target='_blank'>" +
+        "COMNAP</a><br>Base Map &copy; <a href='https://wiki.earthdata.nasa.gov/display/GIBS' target='_blank'>" +
+        'NASA EOSDIS GIBS</a>';
+      const nasaUrl =
+        'https://gibs-{s}.earthdata.nasa.gov' +
+        '/wmts/epsg3031/best/' +
+        '{layer}/default/{tileMatrixSet}/{z}/{y}/{x}.{format}';
+
+      // config attributes for blue marble layer
+      const blueMarble = new L.tileLayer(nasaUrl, {
+        attribution: nasaAttrib,
+        attributionControl: false,
+        tileSize: 512,
+        layer: 'BlueMarble_ShadedRelief_Bathymetry',
+        tileMatrixSet: '500m',
+        format: 'jpeg',
+      });
+
+      L.control
+        .attribution({
+          prefix: false,
+          position: 'bottomleft',
+        })
+        .addTo(STATE.map);
+
+      STATE.map.setView(new L.LatLng(-90, 0), 0);
+      STATE.map.addLayer(blueMarble);
+      */
+
       let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
       let osmAttrib =
         'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
@@ -856,10 +928,15 @@ function initializeApp(hostname) {
         center: [0, 0],
         zoom: 2,
         layers: [osmBase],
+        // drawControl: true,
       });
-    });
 
-  exportModules();
+      /*
+      STATE.map.on(L.Draw.Event.CREATED, function (event) {
+        var layer = event.layer;
+        console.log(layer);
+      }); */
+    });
 }
 
 /**
@@ -877,3 +954,5 @@ function exportModules() {
     };
   }
 }
+
+exportModules();
