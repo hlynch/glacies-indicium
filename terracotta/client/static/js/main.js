@@ -15,7 +15,7 @@ const errorProxy = (arr) =>
     },
   });
 
-const DATASETS_PER_PAGE = 100;
+const DATASETS_PER_PAGE = 10;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
   { displayName: 'Greyscale', id: 'greys_r' },
@@ -168,7 +168,7 @@ function getColormapValues(remoteHost, num_values = 100) {
  */
 function initUI(remoteHost, keys) {
   httpGet('/getJsonFile/bandNames').then((result) => {
-    createBandInputs(result);
+    result.length >= 5 ? createDropdownBandInputs(result) : createBandInputs(result);
   });
 
   // initialize colormap selector
@@ -176,16 +176,48 @@ function initUI(remoteHost, keys) {
   colormapSelector.innerHTML = '';
 
   for (let i = 0; i < COLORMAPS.length; i++) {
-    let cmapOption = document.createElement('option');
+    let cmapOption = document.createElement('button');
     cmapOption.value = COLORMAPS[i].id;
     cmapOption.innerHTML = COLORMAPS[i].displayName;
+    cmapOption.classList.add('btn', 'btn-block');
+    cmapOption.setAttribute('onclick', 'updateColormap(this.value)');
     if (i === 0) {
-      cmapOption.selected = true;
+      updateColormap(COLORMAPS[i].id);
     }
     colormapSelector.appendChild(cmapOption);
   }
 
-  updateColormap();
+  if (halfmoon.readCookie('halfmoon_preferredMode')) {
+    if (halfmoon.readCookie('halfmoon_preferredMode') == 'light-mode') {
+      $('#header-one').attr('src', '/static/images/header_large.png');
+    } else {
+      $('#header-one').attr('src', '/static/images/header_large_dark_mode.png');
+    }
+  }
+}
+
+/**
+ * Create a list of radio bands inside a dropdown menu
+ * @param {Array} bandNames
+ */
+function createDropdownBandInputs(bandNames) {
+  const dropdownContainer = $('#band-dropdown-container');
+
+  bandNames.forEach((band) => {
+    let dropdownMenuContainer = $('<div class="dropdown-item"></div>');
+    let bandRadioButtonContainer = $('<div class="custom-radio mb-10"></div>');
+    let bandRadioButton = createNewbandRadioButton(band);
+    let bandRadioButtonLabel = createNewInputLabel(band['name'], band['name']);
+
+    $(bandRadioButtonContainer).append(bandRadioButton);
+    $(bandRadioButtonContainer).append(bandRadioButtonLabel);
+    $(dropdownMenuContainer).append(bandRadioButtonContainer);
+    $('#band-dropdown-menu').append(bandRadioButtonContainer);
+  });
+
+  dropdownContainer.css('display', 'block');
+
+  addbandRadioButtonListeners();
 }
 
 /**
@@ -218,6 +250,12 @@ function getSelectedBandLayer(bandRadioButtons) {
     .map((i) => i.value);
 
   const activeBandKey = selectedBands[0];
+  const newButtonContent = $(
+    `<span>${activeBandKey}</span><i class="fa fa-angle-down ml-5" aria-hidden="true"></i>`
+  );
+
+  $('#dropdown-toggle-1').html(newButtonContent);
+
   let keys = [];
 
   let currentRegion =
@@ -451,9 +489,15 @@ function updatePageControls() {
  *
  * @global
  */
-function updateColormap() {
-  const colormapSelector = document.querySelector('select#colormap-selector');
-  STATE.currentColormap = colormapSelector.selectedOptions[0].value;
+function updateColormap(colormapValue) {
+  STATE.currentColormap = colormapValue;
+
+  let colormap = COLORMAPS.find((color) => color.id === colormapValue);
+  const newButtonContent = $(
+    `<span>${colormap.displayName}</span><i class="fa fa-angle-down ml-5" aria-hidden="true"></i>`
+  );
+
+  $('#dropdown-toggle-2').html(newButtonContent);
 
   let colorbar = STATE.colormapValues[STATE.currentColormap];
 
@@ -487,8 +531,6 @@ function toggleDatasetMouseover(element) {
   const metadata = STATE.datasetMetadata[key];
   if (!metadata) return;
 
-  console.log(metadata);
-
   STATE.overlayLayer = L.geoJSON(metadata.convex_hull, {
     style: {
       color: '#0B4566',
@@ -507,6 +549,8 @@ function toggleDarkMode() {
 
   $('#viewModeIcon').toggleClass('fa-moon');
   $('#viewModeIcon').toggleClass('fa-sun');
+
+  toggleLogo();
 }
 
 /**
@@ -516,6 +560,16 @@ function toggleDarkMode() {
  */
 function toggleDatasetMouseleave() {
   STATE.map.removeLayer(STATE.overlayLayer);
+}
+
+/**
+ * Toggles logo in sidebar between light and dark mode
+ *
+ */
+function toggleLogo() {
+  $('#header-one').attr('src') === '/static/images/header_large_dark_mode.png'
+    ? $('#header-one').attr('src', '/static/images/header_large.png')
+    : $('#header-one').attr('src', '/static/images/header_large_dark_mode.png');
 }
 
 /**
@@ -565,6 +619,12 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
   } else {
     selectedBand = STATE.activeBandKey;
   }
+
+  const newButtonContent = $(
+    `<span>${selectedBand}</span><i class="fa fa-angle-down ml-5" aria-hidden="true"></i>`
+  );
+
+  $('#dropdown-toggle-1').html(newButtonContent);
 
   const regionName = currentRegion.split('/')[0];
   const currentDataArray = [regionName, selectedBand];
@@ -654,7 +714,7 @@ function resetLayerState(resetAllButtons) {
     resetbandRadioButtons();
   }
 
-  $('#layerInfo__container').prop('display', 'none');
+  $('#layerInfo__container').css('display', 'none');
 }
 
 /**
@@ -928,14 +988,7 @@ function initializeApp(hostname) {
         center: [0, 0],
         zoom: 2,
         layers: [osmBase],
-        // drawControl: true,
       });
-
-      /*
-      STATE.map.on(L.Draw.Event.CREATED, function (event) {
-        var layer = event.layer;
-        console.log(layer);
-      }); */
     });
 }
 
