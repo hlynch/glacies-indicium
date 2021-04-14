@@ -132,6 +132,10 @@ nav {
   text-align: center;
 }
 
+.image-caption strong {
+  font-family: 'worksans-r', serif !important;
+}
+
 .padding-top-md {
   padding-top: 2em;
 }

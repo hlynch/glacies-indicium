@@ -64,7 +64,6 @@ setup(
         'flask_cors',
         'marshmallow>=3.0.0',
         'mercantile',
-        'morecantile',
         'numpy%s' % numpy_version,
         'pillow',
         'pyyaml>=3.10',  # downstream dependency of apispec

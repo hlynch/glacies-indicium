@@ -19,103 +19,35 @@
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@rc/dist/js.cookie.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </head>
-  <body data-set-preferred-mode-onload="true">
-    <div id="controls" class="container-fluid list overflow-y-scroll">
-      <div id="top-controls" class="d-flex d-flex justify-content-end">
-        <img
-          src="{{ url_for('static', filename='images/header_large.png') }}"
-          class="header"
-          id="header-one"
-        />
-        <div class="custom-switch ml-20 mt-20">
+  <body
+    class="with-custom-webkit-scrollbars with-custom-css-scrollbars"
+    data-set-preferred-mode-onload="true"
+  >
+    <div id="page-wrapper" class="page-wrapper with-navbar with-sidebar">
+      <nav class="navbar">
+        <div class="navbar-content">
           <button
+            id="toggle-sidebar-btn"
             class="btn btn-action"
             type="button"
-            onclick="toggleDarkMode();"
-            aria-label="Toggle dark mode"
+            onclick="toggleSidebar()"
           >
-            <i class="far fa-moon" aria-hidden="true" id="viewModeIcon"></i>
+            <i class="fa fa-times" id="menu-icon" aria-hidden="true"></i>
           </button>
         </div>
-      </div>
-      <div class="el-wrapper border-none">
-        <div
-          id="details__container"
-          class="clickable d-flex justify-content-start"
-          onclick="toggleDetails();"
-        >
-          <h2 class="content-title">
-            Details <i class="fa fa-info-circle fa-2" aria-hidden="true"></i>
-          </h2>
-        </div>
-        <div id="details__content">
-          <p class="clear" id="info-text">Glacies Indicium capstone project!</p>
-          <p id="details__host--title">
-            <b>host: </b> <span id="details__host--url">{{ hostname }}</span>
-          </p>
-        </div>
-      </div>
-      <hr />
-
-      <div id="widget"></div>
-
-      <div class="form-group">
-        <h2 class="content-title d-inline-block">Band Keys</h2>
-        <div id="key-list"></div>
-        <div class="dropdown" id="band-dropdown-container">
-          <button
-            class="btn dropdown-btn"
-            data-toggle="dropdown"
-            type="button"
-            id="dropdown-toggle-1"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            Select Band <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
-          </button>
-          <div
-            class="dropdown-menu"
-            id="band-dropdown-menu"
-            aria-labelledby="dropdown-toggle-btn-1"
-          ></div>
-        </div>
-      </div>
-      <hr />
-      <div>
-        <h2 class="content-title d-inline-block">Colormap</h2>
-        <div class="dropdown" id="colormap-dropdown-container">
-          <button
-            class="btn dropdown-btn"
-            data-toggle="dropdown"
-            type="button"
-            id="dropdown-toggle-2"
-            aria-haspopup="true"
-            aria-expanded="false"
-          >
-            Select Colormap <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
-          </button>
-          <div
-          class="dropdown-menu"
-          id="colormap-selector"
-          aria-labelledby="dropdown-toggle-btn-1"
-        ></div>
-      </div>
-      <hr />
-      <div class="el-wrapper border-none mb-10" id="regionList">
-        <h2 class="content-title">Region Keys</h2>
-        <div class="input-group" id="search-group">
-          <span>
-            <i class="fas fa-search" id="search-icon" aria-hidden="true"></i>
-          </span>
-          <input
-            id="search-input"
-            type="text"
-            class="form-control"
-            placeholder="Search for a region"
-            onkeyup="filterRegions(this)"
+        <a href="#" class="navbar-brand">
+          <img
+            src="{{ url_for('static', filename='images/header_large.png') }}"
+            style="height: 50px"
+            id="header-one"
+            class="header"
           />
-        </div>
-        <div class="d-inline-flex justify-content-around mb-20 mt-5">
+        </a>
+        <div class="navbar-content ml-auto">
+          <button class="btn btn-action mr-5" type="button" onclick="toggleDarkMode()">
+            <i id="viewModeIcon" class="far fa-moon" aria-hidden="true"></i>
+            <span class="sr-only">Toggle dark mode</span>
+          </button>
           <a
             class="btn btn-primary btn-sm d-none mr-10"
             id="export-button"
@@ -134,29 +66,110 @@
             Reset Map
           </button>
         </div>
-        <div id="thumbnail-holder"></div>
-        <div class="scrolling-list overflow-y-auto" id="search-results"></div>
+      </nav>
+
+      <div class="sidebar-overlay" onclick="halfmoon.toggleSidebar()"></div>
+      <div class="sidebar">
+        <div class="sidebar-menu">
+          <div
+            id="details__container"
+            class="clickable d-flex justify-content-start"
+            onclick="toggleDetails();"
+          >
+            <h2 class="content-title">
+              Details <i class="fa fa-info-circle fa-2" aria-hidden="true"></i>
+            </h2>
+          </div>
+          <div id="details__content">
+            <p class="clear" id="info-text">Glacies Indicium capstone project!</p>
+            <p id="details__host--title">
+              <b>host: </b> <span id="details__host--url">{{ hostname }}</span>
+            </p>
+          </div>
+          <div class="sidebar-divider"></div>
+          <br />
+          <div class="form-group">
+            <h2 class="content-title d-inline-block">Band Keys</h2>
+            <div id="key-list"></div>
+            <div class="dropdown" id="band-dropdown-container">
+              <button
+                class="btn dropdown-btn"
+                data-toggle="dropdown"
+                type="button"
+                id="dropdown-toggle-1"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                Select Band <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
+              </button>
+              <div
+                class="dropdown-menu"
+                id="band-dropdown-menu"
+                aria-labelledby="dropdown-toggle-btn-1"
+              ></div>
+            </div>
+          </div>
+          <div class="sidebar-divider"></div>
+          <div>
+            <h2 class="content-title d-inline-block">Colormap</h2>
+            <div class="dropdown" id="colormap-dropdown-container">
+              <button
+                class="btn dropdown-btn"
+                data-toggle="dropdown"
+                type="button"
+                id="dropdown-toggle-2"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                Select Colormap <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
+              </button>
+              <div
+                class="dropdown-menu"
+                id="colormap-selector"
+                aria-labelledby="dropdown-toggle-btn-1"
+              ></div>
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="el-wrapper border-none mb-10" id="regionList">
+              <h2 class="content-title">Region Keys</h2>
+              <div class="input-group" id="search-group">
+                <span>
+                  <i class="fas fa-search" id="search-icon" aria-hidden="true"></i>
+                </span>
+                <input
+                  id="search-input"
+                  type="text"
+                  class="form-control"
+                  placeholder="Search for a region"
+                  onkeyup="filterRegions(this)"
+                />
+              </div>
+              <div id="thumbnail-holder"></div>
+              <div class="scrolling-list overflow-y-auto mt-10" id="search-results"></div>
+            </div>
+            <div id="loader__container">
+              <div id="loader__spinner--control" class="loader__spinner"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="loader__container">
-        <div id="loader__spinner--control" class="loader__spinner"></div>
+      <div class="content-wrapper">
+        <div id="layerInfo__container">
+          <div id="layerInfo__container--title" onclick="toggleLayerInfo()">
+            <h5 id="layerInfo__toggle--title" class="no-select">Layer info</h5>
+            <p id="layerInfo__toggle--icon" class="no-select text-danger">×</p>
+          </div>
+          <div id="layerInfo__container--content">
+            <p id="layerInfo__URL">current layer:</p>
+            <p id="layerInfo__metadata"></p>
+          </div>
+        </div>
+        <aside class="error-container">
+          <ul id="errors"></ul>
+        </aside>
+        <div id="map"></div>
       </div>
     </div>
-
-    <div id="map"></div>
-
-    <div id="layerInfo__container">
-      <div id="layerInfo__container--title" onclick="toggleLayerInfo()">
-        <h5 id="layerInfo__toggle--title" class="no-select">Layer info</h5>
-        <p id="layerInfo__toggle--icon" class="no-select text-danger">×</p>
-      </div>
-      <div id="layerInfo__container--content">
-        <p id="layerInfo__URL">current layer:</p>
-        <p id="layerInfo__metadata"></p>
-      </div>
-    </div>
-    <aside class="error-container">
-      <ul id="errors"></ul>
-    </aside>
     <script type="text/javascript">
       window.onload = initializeApp.bind(null, '{{ hostname }}');
     </script>

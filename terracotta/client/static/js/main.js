@@ -15,7 +15,7 @@ const errorProxy = (arr) =>
     },
   });
 
-const DATASETS_PER_PAGE = 10;
+const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
   { displayName: 'Greyscale', id: 'greys_r' },
@@ -423,7 +423,7 @@ function updateSearchResults() {
 }
 
 /**
- * Filter regions on
+ * Filter regions based on search input
  */
 function filterRegions(element) {
   const value = $(element).val().toLowerCase();
@@ -551,6 +551,16 @@ function toggleDarkMode() {
   $('#viewModeIcon').toggleClass('fa-sun');
 
   toggleLogo();
+}
+
+/**
+ *  Called in app.html on side bar menu toggle
+ * @global
+ */
+function toggleSidebar() {
+  halfmoon.toggleSidebar();
+  $('#menu-icon').toggleClass('fa-bars');
+  $('#menu-icon').toggleClass('fa-times');
 }
 
 /**
@@ -925,61 +935,6 @@ function initializeApp(hostname) {
       STATE.keys = keys;
       initUI(hostname, keys);
       updateSearchResults();
-
-      /*
-      const EPSG3031 = new L.Proj.CRS(
-        'EPSG:3031',
-        '+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs',
-        {
-          origin: [-4194304, 4194304],
-          resolutions: [8192.0, 4096.0, 2048.0, 1024.0, 512.0, 256.0],
-          bounds: L.bounds([-4194304, -4194304], [4194304, 4194304]),
-        }
-      );
-
-      const southWest = L.latLng(-38.94137277935882, -135);
-      const northEast = L.latLng(-38.94137277935882, 45);
-      const bounds = L.latLngBounds(southWest, northEast);
-
-      // create the map
-      STATE.map = L.map('map', {
-        crs: EPSG3031,
-        minZoom: 0,
-        maxZoom: 4, // because nasa data has only five zoom levels
-        maxBounds: bounds,
-      });
-
-      // config attributes for nasa data source
-      const nasaAttrib =
-        "Data Source &copy; <a href='https://www.comnap.aq/SitePages/Home.aspx' target='_blank'>" +
-        "COMNAP</a><br>Base Map &copy; <a href='https://wiki.earthdata.nasa.gov/display/GIBS' target='_blank'>" +
-        'NASA EOSDIS GIBS</a>';
-      const nasaUrl =
-        'https://gibs-{s}.earthdata.nasa.gov' +
-        '/wmts/epsg3031/best/' +
-        '{layer}/default/{tileMatrixSet}/{z}/{y}/{x}.{format}';
-
-      // config attributes for blue marble layer
-      const blueMarble = new L.tileLayer(nasaUrl, {
-        attribution: nasaAttrib,
-        attributionControl: false,
-        tileSize: 512,
-        layer: 'BlueMarble_ShadedRelief_Bathymetry',
-        tileMatrixSet: '500m',
-        format: 'jpeg',
-      });
-
-      L.control
-        .attribution({
-          prefix: false,
-          position: 'bottomleft',
-        })
-        .addTo(STATE.map);
-
-      STATE.map.setView(new L.LatLng(-90, 0), 0);
-      STATE.map.addLayer(blueMarble);
-      */
-
       let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
       let osmAttrib =
         'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
