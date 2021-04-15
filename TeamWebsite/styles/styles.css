@@ -360,8 +360,14 @@ nav {
   #solution-mobile-header {
     display: block;
   }
+
   #solution-desktop-header {
     display: none;
+  }
+
+  .fa-check-circle,
+  .fa-lightbulb {
+    margin-left: 0rem !important;
   }
 }
 

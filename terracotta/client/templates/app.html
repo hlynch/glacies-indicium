@@ -23,12 +23,29 @@
     class="with-custom-webkit-scrollbars with-custom-css-scrollbars"
     data-set-preferred-mode-onload="true"
   >
+    <div class="modal" id="modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <a href="#" class="close" role="button" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </a>
+          <h5 class="modal-title">Layer Info</h5>
+          <div>
+            <p id="layerInfo__URL">current layer:</p>
+            <p id="layerInfo__metadata"></p>
+          </div>
+          <div class="text-right mt-20">
+            <a href="#" class="btn btn-primary mr-5" role="button">Close</a>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="page-wrapper" class="page-wrapper with-navbar with-sidebar">
       <nav class="navbar">
         <div class="navbar-content">
           <button
             id="toggle-sidebar-btn"
-            class="btn btn-action"
+            class="btn btn-action bg-none"
             type="button"
             onclick="toggleSidebar()"
           >
@@ -44,26 +61,38 @@
           />
         </a>
         <div class="navbar-content ml-auto">
-          <button class="btn btn-action mr-5" type="button" onclick="toggleDarkMode()">
-            <i id="viewModeIcon" class="far fa-moon" aria-hidden="true"></i>
+          <button
+            class="btn btn-action bg-none mr-5"
+            type="button"
+            onclick="toggleDarkMode()"
+          >
+            <i id="viewModeIcon" class="fas fa-sun" aria-hidden="true"></i>
             <span class="sr-only">Toggle dark mode</span>
           </button>
+
           <a
-            class="btn btn-primary btn-sm d-none mr-10"
+            class="btn btn-action d-none mr-5"
             id="export-button"
             target="_blank"
             download
             role="button"
+            data-toggle="tooltip"
+            data-title="Download current layer"
+            data-placement="left"
           >
-            Download Layer
+            <i class="fas fa-file-download"></i>
           </a>
+
           <button
-            class="btn btn-danger btn-sm d-none"
+            class="btn btn-action btn-danger d-none"
             id="clear-button"
             type="button"
+            data-toggle="tooltip"
+            data-title="Reset layer"
+            data-placement="left"
             onclick="resetLayerState(true)"
           >
-            Reset Map
+            <i class="fas fa-undo"></i>
           </button>
         </div>
       </nav>
@@ -77,7 +106,7 @@
             onclick="toggleDetails();"
           >
             <h2 class="content-title">
-              Details <i class="fa fa-info-circle fa-2" aria-hidden="true"></i>
+              Details <i class="fas fa-caret-down fa-2" aria-hidden="true"></i>
             </h2>
           </div>
           <div id="details__content">
@@ -100,7 +129,8 @@
                 aria-haspopup="true"
                 aria-expanded="false"
               >
-                Select Band <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
+                Select Band
+                <i class="fas fa-caret-down ml-5" aria-hidden="true"></i>
               </button>
               <div
                 class="dropdown-menu"
@@ -121,7 +151,8 @@
                 aria-haspopup="true"
                 aria-expanded="false"
               >
-                Select Colormap <i class="fa fa-angle-down ml-5" aria-hidden="true"></i>
+                Select Colormap
+                <i class="fas fa-caret-down ml-5" aria-hidden="true"></i>
               </button>
               <div
                 class="dropdown-menu"
@@ -155,14 +186,9 @@
       </div>
       <div class="content-wrapper">
         <div id="layerInfo__container">
-          <div id="layerInfo__container--title" onclick="toggleLayerInfo()">
-            <h5 id="layerInfo__toggle--title" class="no-select">Layer info</h5>
-            <p id="layerInfo__toggle--icon" class="no-select text-danger">×</p>
-          </div>
-          <div id="layerInfo__container--content">
-            <p id="layerInfo__URL">current layer:</p>
-            <p id="layerInfo__metadata"></p>
-          </div>
+          <a href="#modal" class="btn btn-primary" role="button"
+            ><i class="fas fa-info-circle"> </i>
+          </a>
         </div>
         <aside class="error-container">
           <ul id="errors"></ul>

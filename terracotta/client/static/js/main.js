@@ -187,13 +187,11 @@ function initUI(remoteHost, keys) {
     colormapSelector.appendChild(cmapOption);
   }
 
-  if (halfmoon.readCookie('halfmoon_preferredMode')) {
-    if (halfmoon.readCookie('halfmoon_preferredMode') == 'light-mode') {
-      $('#header-one').attr('src', '/static/images/header_large.png');
-    } else {
-      $('#header-one').attr('src', '/static/images/header_large_dark_mode.png');
-    }
+  if ($('#page-wrapper').attr('data-sidebar-hidden') === 'hidden') {
+    $('#menu-icon').toggleClass('fa-bars');
+    $('#menu-icon').toggleClass('fa-times');
   }
+  updateLogo();
 }
 
 /**
@@ -251,7 +249,7 @@ function getSelectedBandLayer(bandRadioButtons) {
 
   const activeBandKey = selectedBands[0];
   const newButtonContent = $(
-    `<span>${activeBandKey}</span><i class="fa fa-angle-down ml-5" aria-hidden="true"></i>`
+    `<span>${activeBandKey}</span><i class="fas fa-caret-down ml-5" aria-hidden="true"></i>`
   );
 
   $('#dropdown-toggle-1').html(newButtonContent);
@@ -494,7 +492,7 @@ function updateColormap(colormapValue) {
 
   let colormap = COLORMAPS.find((color) => color.id === colormapValue);
   const newButtonContent = $(
-    `<span>${colormap.displayName}</span><i class="fa fa-angle-down ml-5" aria-hidden="true"></i>`
+    `<span>${colormap.displayName}</span><i class="fas fa-caret-down ml-5" aria-hidden="true"></i>`
   );
 
   $('#dropdown-toggle-2').html(newButtonContent);
@@ -561,6 +559,10 @@ function toggleSidebar() {
   halfmoon.toggleSidebar();
   $('#menu-icon').toggleClass('fa-bars');
   $('#menu-icon').toggleClass('fa-times');
+
+  setTimeout(function () {
+    STATE.map.invalidateSize(true);
+  }, 200);
 }
 
 /**
@@ -609,7 +611,22 @@ function toggleSinglebandMapLayer(currentRegion, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#export-button').attr('href', `/static/mosaics/optimized/${fileName}`);
+  $('#export-button a').attr('href', `/static/mosaics/optimized/${fileName}`);
+}
+
+/**
+ * Determines if the logo should use light mode or not
+ */
+function updateLogo() {
+  halfmoon.readCookie('halfmoon_preferredMode')
+    ? halfmoon.readCookie('halfmoon_preferredMode') == 'light-mode'
+      ? $('#header-one').attr('src', '/static/images/header_large.png')
+      : $('#header-one').attr('src', '/static/images/header_large_dark_mode.png')
+    : $('#header-one').attr('src', '/static/images/header_large.png');
+
+  $('#header-one').attr('src') === '/static/images/header_large.png'
+    ? $('#viewModeIcon').attr('class', 'fas fa-sun')
+    : $('#viewModeIcon').attr('class', 'fas fa-moon');
 }
 
 /**
@@ -631,7 +648,7 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
   }
 
   const newButtonContent = $(
-    `<span>${selectedBand}</span><i class="fa fa-angle-down ml-5" aria-hidden="true"></i>`
+    `<span>${selectedBand}</span><i class="fas fa-caret-down ml-5" aria-hidden="true"></i>`
   );
 
   $('#dropdown-toggle-1').html(newButtonContent);
