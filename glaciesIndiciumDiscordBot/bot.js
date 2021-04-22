@@ -11,48 +11,54 @@ client.on('ready', () => {
     const args = message.content.slice(prefix.length).trim().split(' ');
     const command = args.shift().toLowerCase();
 
-    if (command === 'ping') {
-      message.channel.send('Pong.');
-    } else if (command === 'beep') {
-      message.channel.send('Boop.');
-    } else if (command === 'server') {
-      message.channel.send(
-        `Server name: ${message.guild.name}\nTotal members: ${message.guild.memberCount}`
-      );
-    } else if (command === 'user-info') {
-      message.channel.send(
-        `Your username: ${message.author.username}\nYour ID: ${message.author.id}`
-      );
-    } else if (command === 'reddit') {
-      getRedditPost(message);
+    switch (command) {
+      case 'ping':
+        message.channel.send('Pong.');
+      case 'beep':
+        message.channel.send('Boop.');
+      case 'server':
+        message.channel.send(
+          `Server name: ${message.guild.name}\nTotal members: ${message.guild.memberCount}`
+        );
+      case 'user-info':
+        message.channel.send(
+          `Your username: ${message.author.username}\nYour ID: ${message.author.id}`
+        );
+      case 'reddit':
+        getRedditPost(message);
     }
   });
-
-  console.log('ready');
 });
 
-/** Sends message on Mondays at 2:30PM, Wednesdays at 3:30PM, and Fridays at 1:00PM */
+/** Sends message on Mondays at 3:30PM, Wednesdays at 4:30PM, and Fridays at 1:00PM */
 let timer = setInterval(function () {
   const now = new Date();
 
-  if (now.getDay() == 1) {
-    if (now.getUTCHours() - 7 == 14 && now.getUTCMinutes() == 30) {
-      client.channels
-        .get(process.env.CHANNEL_ID)
-        .send('@everyone See you guys in one hour!');
-    }
-  } else if (now.getDay() === 3) {
-    if (now.getUTCHours() - 7 == 15 && now.getUTCMinutes() == 30) {
-      client.channels
-        .get(process.env.CHANNEL_ID)
-        .send('@everyone See you guys in one hour!');
-    }
-  } else if (now.getDay() === 5) {
-    if (now.getUTCHours() - 7 == 13 && now.getUTCMinutes() == 0) {
-      client.channels
-        .get(process.env.CHANNEL_ID)
-        .send('@everyone See you guys in one hour!');
-    }
+  switch (now.getDay()) {
+    case 1:
+      if (
+        now.getUTCHours() - 7 == 15 &&
+        now.getUTCMinutes() == 30 &&
+        now.getFullYear() == 2021
+      ) {
+        send_reminder();
+      }
+    case 3:
+      if (
+        now.getUTCHours() - 7 == 16 &&
+        now.getUTCMinutes() == 30 &&
+        now.getFullYear() == 2021
+      ) {
+        send_reminder();
+      }
+    case 5:
+      if (
+        now.getUTCHours() - 7 == 13 &&
+        now.getUTCMinutes() == 0 &&
+        now.getFullYear() == 2021
+      ) {
+        send_reminder();
+      }
   }
 }, 60 * 1000);
 
@@ -71,9 +77,7 @@ function getRedditPost(messageObject) {
         link: post.url,
         redditLink: 'https://www.reddit.com' + post.permalink,
         img:
-          typeof post.preview !== 'undefined'
-            ? post.preview.images[0].source.url
-            : null,
+          typeof post.preview !== 'undefined' ? post.preview.images[0].source.url : null,
         title: post.title,
       }))
     )
@@ -89,6 +93,12 @@ function sendRandomPost(messageObject, posts) {
     .setImage(randomPost.img);
 
   messageObject.channel.send(newEmbededPost);
+}
+
+function send_reminder() {
+  client.channels.cache
+    .get(process.env.CHANNEL_ID)
+    .send('@everyone See you guys in one hour!');
 }
 
 client.login(process.env.BOT_TOKEN);
