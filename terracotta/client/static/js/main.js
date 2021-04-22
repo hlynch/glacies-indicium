@@ -1,19 +1,3 @@
-/// <reference path='./types/leaflet.d.ts' />
-/// <reference path='./types/no-ui-slider.d.ts' />
-/// <reference path='./types/main.d.ts' />
-
-/* BEWARE! THERE BE DRAGONS! 🐉
-
-Big parts of following file were written by a Python programmer with minimal exposure
-to idiomatic Javascript. It should not serve as an authoritive reference on how a
-frontend for Terracotta should be written.
-*/
-
-/*
-Some notes:
-- methods marked with @global are expected to be available in the DOM (i.e. app.html).
-*/
-
 // ===================================================
 // Constants
 // ===================================================
@@ -31,52 +15,29 @@ const errorProxy = (arr) =>
     },
   });
 
-const rgbStretchProxy = (arr) =>
-  new Proxy(arr, {
-    set: (target, property, value) => {
-      target[property] = value;
-      return true;
-    },
-  });
-
-const singlebandStretchProxy = (arr) =>
-  new Proxy(arr, {
-    set: (target, property, value) => {
-      target[property] = value;
-      return true;
-    },
-  });
-
-const DATASETS_PER_PAGE = 16;
+const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
 const COLORMAPS = [
-  { display_name: 'Greyscale', id: 'greys_r' },
-  { display_name: 'Viridis', id: 'viridis' },
-  { display_name: 'Blue-Red', id: 'rdbu_r' },
-  { display_name: 'Blue-Green', id: 'bugn' },
-  { display_name: 'Yellow-Green', id: 'ylgn' },
-  { display_name: 'Magma', id: 'magma' },
-  { display_name: 'Earth', id: 'gist_earth' },
-  { display_name: 'Ocean', id: 'ocean' },
+  { displayName: 'Greyscale', id: 'greys_r' },
+  { displayName: 'Blue-Red', id: 'rdbu_r' },
+  { displayName: 'Blue-Green', id: 'bugn' },
 ];
 
 const STATE = {
   keys: [],
-  ds_keys: [],
   errors: errorProxy([]),
-  remote_host: '',
-  current_dataset_page: 0,
-  dataset_metadata: {},
-  colormap_values: {},
-  current_colormap: '',
-  current_singleband_stretch: [0, 233.1878],
+  remoteHost: '',
+  currentDatasetPage: 0,
+  datasetMetadata: {},
+  colormapValues: {},
+  currentColormap: '',
+  currentSinglebandStretch: [0, 233.1878],
   map: undefined,
-  baseLayer: undefined,
   overlayLayer: undefined,
   activeSinglebandLayer: undefined,
   activeRgbLayer: undefined,
-  driveFiles: [],
-  m_pos: 0,
+  activeBandKey: undefined,
+  mPos: 0,
 };
 
 // ===================================================
@@ -86,63 +47,60 @@ const STATE = {
 /**
  * As it says, gets keys so the app can be initialized.
  *
- * @param {string} remote_host
+ * @param {string} remoteHost
  *
  * @return {Promise<Array<Terracotta.IKey>>}
  */
-function getKeys(remote_host) {
-  const keyUrl = `${remote_host}/keys`;
+function getKeys(remoteHost) {
+  const keyUrl = `${remoteHost}/keys`;
   return httpGet(keyUrl).then((response) => response.keys || []);
 }
 
 /**
- * @param {string} remote_host
+ * @param {string} remoteHost
  * @param {Array<Terracotta.IKeyConstraint>} key_constraints Key/val pairs of constraints.
  * @param {number} limit Items per page
- * @param {number} page Page number
  *
  * @return {string} dataset URL.
  */
-function assembleDatasetURL(remote_host, key_constraints, limit, page) {
-  let request_url = `${remote_host}/datasets?limit=${limit}&page=${page}`;
+function assembleDatasetURL(key_constraints, limit) {
+  let request_url = `${STATE.remoteHost}/datasets?limit=${limit}&page=${STATE.currentDatasetPage}`;
 
-  for (let i = 0; i < key_constraints.length; i++) {
-    request_url += `&${key_constraints[i].key}=${key_constraints[i].value}`;
+  for (let index = 0; index < key_constraints.length; index++) {
+    request_url += `&${key_constraints[index].key}=${key_constraints[index].value}`;
   }
+
   return request_url;
 }
 
 /**
- * @param {string} remote_host
- * @param {Array<string>} ds_keys Dataset keys i.e. [<type>, <date>, <id>, <band>].
+ * @param {Array<string>} dsKeys Dataset keys i.e. [<type>, <date>, <id>, <band>].
  *
  * @return {string} metadata URL.
  */
-function assembleMetadataURL(remote_host, ds_keys) {
-  let request_url = `${remote_host}/metadata`;
-  for (let i = 0; i < ds_keys.length; i++) {
-    request_url += `/${ds_keys[i]}`;
+function assembleMetadataURL(dsKeys) {
+  let request_url = `${STATE.remoteHost}/metadata`;
+  for (let index = 0; index < dsKeys.length; index++) {
+    request_url += `/${dsKeys[index]}`;
   }
   return request_url;
 }
 
 /**
- * @param {string} remote_host
  * @param {Array<string>} keys
  * @param {Terracotta.IOptions} [options]
  * @param {boolean} [preview]
  *
  * @return {string} singleband URL.
  */
-function assembleSinglebandURL(remote_host, keys, options, preview) {
+function assembleSinglebandURL(keys, options, preview, remoteHost = STATE.remoteHost) {
   let request_url;
-
   if (preview) {
-    request_url = `${remote_host}/singleband/${keys.join(
+    request_url = `${remoteHost}/singleband/${keys.join(
       '/'
     )}/preview.png?tile_size=${JSON.stringify(THUMBNAIL_SIZE)}`;
   } else {
-    request_url = `${remote_host}/singleband/${keys.join('/')}/{z}/{x}/{y}.png`;
+    request_url = `${remoteHost}/singleband/${keys.join('/')}/{z}/{x}/{y}.png`;
   }
 
   if (options == null) return request_url;
@@ -164,49 +122,13 @@ function assembleSinglebandURL(remote_host, keys, options, preview) {
 }
 
 /**
- * @param {string} remote_host
- * @param {Array<string>} first_keys
- * @param {Array<string>} rgb_keys
- * @param {Terracotta.IOptions} options
- * @param {boolean} preview
- *
- * @return {string} rgb URL.
- */
-function assembleRgbUrl(remote_host, first_keys, rgb_keys, options, preview) {
-  let request_url = `${remote_host}/rgb/`;
-
-  if (first_keys.length > 0) {
-    request_url += `${first_keys.join('/')}/`;
-  }
-
-  if (preview) {
-    request_url += `preview.png?tile_size=${JSON.stringify(THUMBNAIL_SIZE)}`;
-  } else {
-    request_url += '{z}/{x}/{y}.png';
-  }
-
-  const [r, g, b] = rgb_keys;
-  request_url += `?r=${r}&g=${g}&b=${b}`;
-
-  if (!options) {
-    return request_url;
-  }
-
-  for (let option_key in options) {
-    if (!options.hasOwnProperty(option_key)) continue;
-    request_url += `&${option_key}=${options[option_key]}`;
-  }
-  return request_url;
-}
-
-/**
  * @param {string} colormap The id of the color map
  * @param {number} num_values The number of values to return
  *
  * @return {string} color map URL
  */
-function assembleColormapUrl(remote_host, colormap, num_values) {
-  return `${remote_host}/colormap?colormap=${colormap}&stretch_range=[0,1]&num_values=${num_values}`;
+function assembleColormapUrl(remoteHost, colormap, num_values) {
+  return `${remoteHost}/colormap?colormap=${colormap}&stretch_range=[0,1]&num_values=${num_values}`;
 }
 
 // ===================================================
@@ -216,20 +138,20 @@ function assembleColormapUrl(remote_host, colormap, num_values) {
 /**
  * Gets colorbar values for a given range.
  *
- * @param {string} remote_host
+ * @param {string} remoteHost
  * @param {number} [num_values=100] The number of values to get colors for.
  */
-function getColormapValues(remote_host, num_values = 100) {
+function getColormapValues(remoteHost, num_values = 100) {
   const requestColorMap = (colormap) => {
     const cmapId = colormap.id;
 
-    return httpGet(assembleColormapUrl(remote_host, cmapId, num_values)).then(
+    return httpGet(assembleColormapUrl(remoteHost, cmapId, num_values)).then(
       (response) => {
         if (response && response.colormap) {
-          STATE.colormap_values[cmapId] = [];
+          STATE.colormapValues[cmapId] = [];
 
           for (let j = 0; j < num_values; j++) {
-            STATE.colormap_values[cmapId][j] = response.colormap[j].rgba;
+            STATE.colormapValues[cmapId][j] = response.colormap[j].rgba;
           }
         }
       }
@@ -244,9 +166,9 @@ function getColormapValues(remote_host, num_values = 100) {
  *
  * @param {Array<Terracotta.IKey>} keys
  */
-function initUI(remote_host, keys) {
+function initUI(remoteHost, keys) {
   httpGet('/getJsonFile/bandNames').then((result) => {
-    createBandInputs(result);
+    result.length >= 5 ? createDropdownBandInputs(result) : createBandInputs(result);
   });
 
   // initialize colormap selector
@@ -254,18 +176,46 @@ function initUI(remote_host, keys) {
   colormapSelector.innerHTML = '';
 
   for (let i = 0; i < COLORMAPS.length; i++) {
-    let cmapOption = document.createElement('option');
+    let cmapOption = document.createElement('button');
     cmapOption.value = COLORMAPS[i].id;
-    cmapOption.innerHTML = COLORMAPS[i].display_name;
+    cmapOption.innerHTML = COLORMAPS[i].displayName;
+    cmapOption.classList.add('btn', 'btn-block');
+    cmapOption.setAttribute('onclick', 'updateColormap(this.value)');
     if (i === 0) {
-      cmapOption.selected = true;
+      updateColormap(COLORMAPS[i].id);
     }
     colormapSelector.appendChild(cmapOption);
   }
 
-  resetLayerState();
-  updateColormap();
-  removeSpinner();
+  if ($('#page-wrapper').attr('data-sidebar-hidden') === 'hidden') {
+    $('#menu-icon').toggleClass('fa-bars');
+    $('#menu-icon').toggleClass('fa-times');
+  }
+  updateLogo();
+}
+
+/**
+ * Create a list of radio bands inside a dropdown menu
+ * @param {Array} bandNames
+ */
+function createDropdownBandInputs(bandNames) {
+  const dropdownContainer = $('#band-dropdown-container');
+
+  bandNames.forEach((band) => {
+    let dropdownMenuContainer = $('<div class="dropdown-item"></div>');
+    let bandRadioButtonContainer = $('<div class="custom-radio mb-10"></div>');
+    let bandRadioButton = createNewbandRadioButton(band);
+    let bandRadioButtonLabel = createNewInputLabel(band['name'], band['name']);
+
+    $(bandRadioButtonContainer).append(bandRadioButton);
+    $(bandRadioButtonContainer).append(bandRadioButtonLabel);
+    $(dropdownMenuContainer).append(bandRadioButtonContainer);
+    $('#band-dropdown-menu').append(bandRadioButtonContainer);
+  });
+
+  dropdownContainer.css('display', 'block');
+
+  addbandRadioButtonListeners();
 }
 
 /**
@@ -275,73 +225,73 @@ function initUI(remote_host, keys) {
  */
 function createBandInputs(bandNames) {
   bandNames.forEach((band) => {
-    let radioButtonContainer = document.createElement('div');
-    radioButtonContainer.classList.add('custom-radio');
-    radioButtonContainer.classList.add('mb-10');
+    let bandRadioButtonContainer = $('<div class="custom-radio mb-10"></div>');
+    let bandRadioButton = createNewbandRadioButton(band);
+    let bandRadioButtonLabel = createNewInputLabel(band['name'], band['name']);
 
-    let bandRadioButon = createNewRadioButton(band);
-    let radioButtonLabel = createNewInputLabel(band['name'], band['name']);
-
-    radioButtonContainer.appendChild(bandRadioButon);
-    radioButtonContainer.appendChild(radioButtonLabel);
-
-    $('#key-list').append(radioButtonContainer);
+    $(bandRadioButtonContainer).append(bandRadioButton);
+    $(bandRadioButtonContainer).append(bandRadioButtonLabel);
+    $('#key-list').append(bandRadioButtonContainer);
   });
 
-  addRadioButtonListeners();
+  addbandRadioButtonListeners();
 }
 
 /**
  *Gets current selected band from radio buttons.
  *
- * @param {Array<HtmlElement} radioButtons
+ * @param {Array<Element>} bandRadioButtons List of all radio buttons in the DOM.
  */
-function getSelectedBandLayer(radioButtons) {
-  const selectedBands = Array.from(radioButtons)
+function getSelectedBandLayer(bandRadioButtons) {
+  const selectedBands = Array.from(bandRadioButtons)
     .filter((i) => i.checked)
     .map((i) => i.value);
 
-  let keys = [];
-
-  const currentRegion =
-    $('#search-results .text-primary').attr('id') ||
-    $('#search-results li:eq(0)').prop('id');
-
-  keys.push({ key: 'band', value: selectedBands[0] });
-  keys.push({ key: 'region', value: currentRegion });
-
-  const datasetURL = assembleDatasetURL(
-    STATE.remote_host,
-    keys,
-    DATASETS_PER_PAGE,
-    STATE.current_dataset_page
+  const activeBandKey = selectedBands[0];
+  const newButtonContent = $(
+    `<span>${activeBandKey}</span><i class="fas fa-caret-down ml-5" aria-hidden="true"></i>`
   );
 
+  $('#dropdown-toggle-1').html(newButtonContent);
+
+  let keys = [];
+
+  let currentRegion =
+    $('#search-results .text-primary').attr('id') ??
+    $('#search-results li:eq(0)').prop('id');
+
+  STATE.activeBandKey = activeBandKey;
+  keys.push({ key: 'band', value: activeBandKey });
+  keys.push({ key: 'region', value: currentRegion.split('/')[0] });
+
+  const datasetURL = assembleDatasetURL(keys, DATASETS_PER_PAGE);
+
   httpGet(datasetURL).then((res) => {
-    const firstResult = res.datasets[0];
-    let resultMetadata = [];
+    if (res.datasets.length > 0) {
+      const firstResult = res.datasets[0];
+      let resultMetadata = [];
 
-    STATE.keys.forEach((bandKey) => {
-      resultMetadata.push(firstResult[bandKey.key]);
-    });
+      STATE.keys.forEach((bandKey) => {
+        resultMetadata.push(firstResult[bandKey.key]);
+      });
 
-    toggleSinglebandMapLayer(currentRegion);
+      toggleSinglebandMapLayer(currentRegion);
+    }
   });
 }
 
 /**
  * Reset the radio buttons
  */
-function resetRadioButtons() {
-  $('input[name=bandListItem]').prop('checked', false);
-  $('#clear-button').toggleClass('d-none');
-  $('#clear-button').toggleClass('d-inline-block');
+function resetbandRadioButtons() {
+  if (STATE.activeSinglebandLayer !== undefined)
+    $('input[type="radio"]').prop('checked', false);
 }
 
 /**
  * Parses json list of regions and creates nested menu
- * @param {JSON} regions
- * @param {HTML Element} container
+ * @param {JSON} regions List of all regions availible from data
+ * @param {Element} container Parent element of current region
  */
 function buildRegionTree(regions, bands, container) {
   regions.forEach((region) => {
@@ -349,14 +299,14 @@ function buildRegionTree(regions, bands, container) {
       createMetadataArray(region.name, bandObject.band);
     });
 
-    let listRoot = document.createElement('ul');
+    let listRoot = $('<ul></ul>');
     let newListElement = createListElement(region);
-    listRoot.appendChild(newListElement);
+    listRoot.append(newListElement);
 
     if (region.subregions !== undefined)
       buildRegionTree(region.subregions, bands, listRoot);
 
-    container.appendChild(listRoot);
+    container.append(listRoot);
   });
 }
 
@@ -396,8 +346,8 @@ function compareArray(arr1, arr2) {
  * @param {Terracotta.IMetadata} metadata
  */
 function storeMetadata(metadata) {
-  const ds_keys = serializeKeys(Object.values(metadata.keys));
-  STATE.dataset_metadata[ds_keys] = metadata;
+  const dsKeys = serializeKeys(Object.values(metadata.keys));
+  STATE.datasetMetadata[dsKeys] = metadata;
 }
 
 /**
@@ -432,14 +382,14 @@ function renderErrors(errors) {
   const errorHtml = errors
     .map(
       (error, index) => `
-            <li>
-                ${error.text} <br/>
-                <small>${error.url}</small>
-                <span onclick='dismissError.call(null, ${index})'>
-                    ×
-                </span>
-            </li>
-        `
+          <li>
+              ${error.text} <br/>
+              <small>${error.url}</small>
+              <span onclick='dismissError.call(null, ${index})'>
+                  x
+              </span>
+          </li>
+      `
     )
     .join('');
   document.querySelector('#errors').innerHTML = errorHtml;
@@ -457,64 +407,48 @@ function dismissError(errorIndex) {
 /**
  * Handle search results and singleband layers.
  *
- * @param {Array<Terracotta.IKey>} keys The keys to update results for.
  */
-function updateSearchResults(
-  remote_host = STATE.remote_host,
-  keys = STATE.keys
-) {
-  // initialize table header for search results
-  const regionList = document.getElementById('search-results');
-  regionList.innerHTML = '';
+function updateSearchResults() {
+  $('#search-results').html('');
 
-  // get key constraints from UI
   let key_constraints = [];
 
-  const datasetUrl = assembleDatasetURL(
-    STATE.remote_host,
-    key_constraints,
-    DATASETS_PER_PAGE,
-    STATE.current_dataset_page
-  );
+  const datasetUrl = assembleDatasetURL(key_constraints, DATASETS_PER_PAGE);
 
   return httpGet(datasetUrl).then((res) => {
-    updateDatasetList(remote_host, res.datasets);
+    updateDatasetList(res.datasets);
   });
+}
+
+/**
+ * Filter regions based on search input
+ */
+function filterRegions(element) {
+  const value = $(element).val().toLowerCase();
+  $('ul li')
+    .hide()
+    .filter(function () {
+      let item = $(this).text().toLowerCase();
+      return item.includes(value);
+    })
+    .closest('li')
+    .show();
 }
 
 /**
  * Refreshes the dataset list.
  *
- * @param {string} remote_host
  * @param {Array<Terracotta.IDataset>} datasets
- * @param {Array<Terracotta.IKey>} keys
  */
-function updateDatasetList(remote_host = STATE.remote_host, datasets, keys) {
-  let datasetTable = document.getElementById('search-results');
+function updateDatasetList(datasets) {
+  const regionContainer = $('#search-results');
+  const dataSetFileName = 'alphaPrototypeMockData';
 
-  // disable next page if there are no more datasets
-  /**
-   * @type {HTMLButtonElement }
-   */
-  let next_page_button = document.querySelector('#next-page');
-  if (datasets.length < DATASETS_PER_PAGE) {
-    next_page_button.disabled = true;
-  } else {
-    next_page_button.disabled = false;
-  }
-
-  httpGet('/getJsonFile/alphaPrototypeMockData').then((data) => {
-    buildRegionTree(data, datasets, datasetTable);
-  });
-
-  addListMargin();
-}
-
-/**
- * Finds the first list element and add margin to increase whitespace.
- */
-function addListMargin() {
-  $('#search-results ul:eq(0)').addClass('ml-20');
+  httpGet(`/getJsonFile/${dataSetFileName}`)
+    .then((data) => {
+      buildRegionTree(data, datasets, regionContainer);
+    })
+    .then(removeSpinner());
 }
 
 /**
@@ -525,7 +459,7 @@ function addListMargin() {
  * @global
  */
 function incrementResultsPage(step) {
-  STATE.current_dataset_page += step;
+  STATE.currentDatasetPage += step;
   updatePageControls();
   updateSearchResults();
 }
@@ -535,13 +469,13 @@ function incrementResultsPage(step) {
  */
 function updatePageControls() {
   document.getElementById('page-counter').innerHTML = String(
-    STATE.current_dataset_page + 1
+    STATE.currentDatasetPage + 1
   );
   /**
    * @type {HTMLButtonElement}
    */
   let prevPageButton = document.querySelector('#prev-page');
-  if (STATE.current_dataset_page > 0) {
+  if (STATE.currentDatasetPage > 0) {
     prevPageButton.disabled = false;
   } else {
     prevPageButton.disabled = true;
@@ -550,16 +484,20 @@ function updatePageControls() {
 
 /**
  * Triggered by a change in the colormap selector in app.html.
+ *
  * @global
  */
-function updateColormap() {
-  /**
-   * @type {HTMLSelectElement}
-   */
-  const colormapSelector = document.querySelector('select#colormap-selector');
-  STATE.current_colormap = colormapSelector.selectedOptions[0].value;
+function updateColormap(colormapValue) {
+  STATE.currentColormap = colormapValue;
 
-  let colorbar = STATE.colormap_values[STATE.current_colormap];
+  let colormap = COLORMAPS.find((color) => color.id === colormapValue);
+  const newButtonContent = $(
+    `<span>${colormap.displayName}</span><i class="fas fa-caret-down ml-5" aria-hidden="true"></i>`
+  );
+
+  $('#dropdown-toggle-2').html(newButtonContent);
+
+  let colorbar = STATE.colormapValues[STATE.currentColormap];
 
   if (!colorbar) {
     return false;
@@ -567,10 +505,7 @@ function updateColormap() {
 
   if (STATE.activeSinglebandLayer == null) return;
 
-  const currentRegion = $('#search-results .text-primary')
-    .html()
-    .split(' ')
-    .join('');
+  const currentRegion = $('#search-results .text-primary').attr('id');
 
   updateSinglebandLayer(currentRegion, false);
 }
@@ -580,18 +515,18 @@ function updateColormap() {
  * @param {HTMLElement} datasetTable
  */
 function toggleDatasetMouseover(element) {
-  if (STATE.overlayLayer != null) {
+  if (STATE.overlayLayer !== undefined) {
     STATE.map.removeLayer(STATE.overlayLayer);
   }
-  const layer_id = element.target.id;
-  const selected_band =
-    $('input[name="bandRadioButon"]:checked').val() ||
-    $('input[name="bandRadioButon"]:eq(0)').prop('id');
 
-  const key = serializeKeys([layer_id, selected_band]);
+  const layer_id = element.target.id.split('/')[0];
 
-  const metadata = STATE.dataset_metadata[key];
+  const selectedBand =
+    STATE.activeBandKey ?? $('input[name="bandRadioButton"]').prop('id');
 
+  const key = serializeKeys([layer_id, selectedBand]);
+
+  const metadata = STATE.datasetMetadata[key];
   if (!metadata) return;
 
   STATE.overlayLayer = L.geoJSON(metadata.convex_hull, {
@@ -604,7 +539,35 @@ function toggleDatasetMouseover(element) {
 }
 
 /**
+ *  Called in app.html on Dark mode toggle
+ * @global
+ */
+function toggleDarkMode() {
+  halfmoon.toggleDarkMode();
+
+  $('#viewModeIcon').toggleClass('fa-moon');
+  $('#viewModeIcon').toggleClass('fa-sun');
+
+  toggleLogo();
+}
+
+/**
+ *  Called in app.html on side bar menu toggle
+ * @global
+ */
+function toggleSidebar() {
+  halfmoon.toggleSidebar();
+  $('#menu-icon').toggleClass('fa-bars');
+  $('#menu-icon').toggleClass('fa-times');
+
+  setTimeout(function () {
+    STATE.map.invalidateSize(true);
+  }, 200);
+}
+
+/**
  * Removes overlay from map after hover
+ *
  * @param {HTMLElement} datasetTable
  */
 function toggleDatasetMouseleave() {
@@ -612,24 +575,31 @@ function toggleDatasetMouseleave() {
 }
 
 /**
+ * Toggles logo in sidebar between light and dark mode
+ *
+ */
+function toggleLogo() {
+  $('#header-one').attr('src') === '/static/images/header_large_dark_mode.png'
+    ? $('#header-one').attr('src', '/static/images/header_large.png')
+    : $('#header-one').attr('src', '/static/images/header_large_dark_mode.png');
+}
+
+/**
  * Toggle active singleband layer.
  *
  * @global
- * @param {Array<string>} ds_keys
+ * @param {Array<string>} dsKeys
  * @param {boolean} resetView
  */
 function toggleSinglebandMapLayer(currentRegion, resetView = true) {
-  let currentKeys;
-  if (STATE.activeSinglebandLayer) {
-    currentKeys = STATE.activeSinglebandLayer.keys;
-  }
+  showControlButtons();
   resetLayerState();
 
   const currentBand =
-    $('input[name="bandRadioButon"]:checked').val() ||
-    $('input[name="bandRadioButon"]:eq(0)').val();
+    $('input[name="bandRadioButton"]:checked').val() ??
+    $('input[name="bandRadioButton"]:eq(0)').val();
 
-  const fileName = currentRegion + '_' + currentBand + '.tif';
+  const fileName = currentRegion.split('/')[0] + '_' + currentBand + '.tif';
 
   updateExportButtonLink(fileName);
   updateSinglebandLayer(currentRegion, resetView);
@@ -641,55 +611,74 @@ function toggleSinglebandMapLayer(currentRegion, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#exportButton').attr('href', `/static/mosaics/optimized/${fileName}`);
+  $('#export-button a').attr('href', `/static/mosaics/optimized/${fileName}`);
 }
 
 /**
- * Switch current active layer to the given singleband dataset.bhgn mj,
+ * Determines if the logo should use light mode or not
+ */
+function updateLogo() {
+  halfmoon.readCookie('halfmoon_preferredMode')
+    ? halfmoon.readCookie('halfmoon_preferredMode') == 'light-mode'
+      ? $('#header-one').attr('src', '/static/images/header_large.png')
+      : $('#header-one').attr('src', '/static/images/header_large_dark_mode.png')
+    : $('#header-one').attr('src', '/static/images/header_large.png');
+
+  $('#header-one').attr('src') === '/static/images/header_large.png'
+    ? $('#viewModeIcon').attr('class', 'fas fa-sun')
+    : $('#viewModeIcon').attr('class', 'fas fa-moon');
+}
+
+/**
+ * Switch current active layer to the given singleband dataset
  *
- * @param {Array<string>} ds_keys Keys of new layer
+ * @param {Array<string>} dsKeys Keys of new layer
  * @param {boolean} resetView Fly to new dataset if not already on screen
  */
 function updateSinglebandLayer(currentRegion, resetView = true) {
   removeRasterLayer();
-  const selected_band =
-    $('input[name="bandRadioButon"]:checked').val() || 'blue';
 
-  if ($('input[name="bandRadioButon"]:checked').length === 0) {
-    $('input[name="bandRadioButon"]:eq(0)').prop('checked', true);
+  let selectedBand;
+
+  if (STATE.activeBandKey === undefined) {
+    selectedBand = $('input[name="bandRadioButton"]:eq(0)').prop('id');
+    $('input[name="bandRadioButton"]:eq(0)').prop('checked', true);
+  } else {
+    selectedBand = STATE.activeBandKey;
   }
 
-  const currentDataArray = [currentRegion, selected_band];
+  const newButtonContent = $(
+    `<span>${selectedBand}</span><i class="fas fa-caret-down ml-5" aria-hidden="true"></i>`
+  );
+
+  $('#dropdown-toggle-1').html(newButtonContent);
+
+  const regionName = currentRegion.split('/')[0];
+  const currentDataArray = [regionName, selectedBand];
 
   const regionKey = serializeKeys(currentDataArray);
+  const metadata = STATE.datasetMetadata[regionKey];
 
-  const metadata = STATE.dataset_metadata[regionKey];
-  let layer_options = {};
-  if (STATE.current_colormap) {
-    layer_options.colormap = STATE.current_colormap;
+  let layerOptions = {};
+  if (STATE.currentColormap) {
+    layerOptions.colormap = STATE.currentColormap;
   }
-  if (STATE.current_singleband_stretch) {
-    layer_options.stretch_range = JSON.stringify(
-      STATE.current_singleband_stretch
-    );
+  if (STATE.currentSinglebandStretch) {
+    layerOptions.stretch_range = JSON.stringify(STATE.currentSinglebandStretch);
   }
-  const layer_url = assembleSinglebandURL(
-    STATE.remote_host,
-    currentDataArray,
-    layer_options
-  );
+  const layerUrl = assembleSinglebandURL(currentDataArray, layerOptions);
 
   STATE.activeSinglebandLayer = {
     keys: regionKey,
-    layer: L.tileLayer(layer_url).addTo(STATE.map),
+    layer: L.tileLayer(layerUrl).addTo(STATE.map),
   };
 
   $('#search-results .text-primary').removeClass('text-primary');
 
-  const dataset_layer =
-    document.getElementById(`${currentRegion}`) ||
-    $('#search-results li:eq(0)');
-  dataset_layer.classList.add('text-primary');
+  const datasetLayer =
+    document.getElementById(currentRegion) ?? $('#search-results li:eq(0)');
+
+  datasetLayer.classList.add('text-primary');
 
   if (resetView && metadata) {
     const screen = STATE.map.getBounds();
@@ -711,23 +700,21 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
 
 /**
  * Checks how much of area is in screen to determine zooming behavior
- * @param {Array[number]} dsBounds bounding box of TC dataset [w, s, e, n]
- * @param {Array[number]} screenBounds bouding box of user's screen [w, s, e, n]
+ * @param {Array<number>} dsBounds bounding box of TC dataset [w, s, e, n]
+ * @param {Array<number>} screenBounds bouding box of user's screen [w, s, e, n]
  *
  * @return {number} ratio of screen covered by dataset in range (0, 1)
  */
 function calcScreenCovered(dsBounds, screenBounds) {
-  const x_overlap = Math.max(
+  const xOverlap = Math.max(
     0,
-    Math.min(dsBounds[2], screenBounds[2]) -
-      Math.max(dsBounds[0], screenBounds[0])
+    Math.min(dsBounds[2], screenBounds[2]) - Math.max(dsBounds[0], screenBounds[0])
   );
-  const y_overlap = Math.max(
+  const yOverlap = Math.max(
     0,
-    Math.min(dsBounds[3], screenBounds[3]) -
-      Math.max(dsBounds[1], screenBounds[1])
+    Math.min(dsBounds[3], screenBounds[3]) - Math.max(dsBounds[1], screenBounds[1])
   );
-  const overlapArea = x_overlap * y_overlap;
+  const overlapArea = xOverlap * yOverlap;
   const screenArea =
     (screenBounds[3] - screenBounds[1]) * (screenBounds[2] - screenBounds[0]);
   return overlapArea / screenArea;
@@ -737,18 +724,24 @@ function calcScreenCovered(dsBounds, screenBounds) {
  * Updates page controls & search results when search changes.
  */
 function searchFieldChanged() {
-  STATE.current_dataset_page = 0;
+  STATE.currentDatasetPage = 0;
   updatePageControls();
   updateSearchResults();
 }
 
 /**
- * Reset all layer state
+ * Reset all layer STATE
  * (remove layers from map, deactivate navigation section, clear info box)
  */
-function resetLayerState() {
+function resetLayerState(resetAllButtons) {
   removeRasterLayer();
-  document.getElementById('layerInfo__container').style.display = 'none';
+
+  if (resetAllButtons) {
+    hideRegionButtons();
+    resetbandRadioButtons();
+  }
+
+  $('#layerInfo__container').css('display', 'none');
 }
 
 /**
@@ -762,6 +755,7 @@ function removeRasterLayer() {
 
   if (STATE.activeSinglebandLayer != null) {
     STATE.map.removeLayer(STATE.activeSinglebandLayer.layer);
+    $('#search-results .text-primary').removeClass('text-primary');
     STATE.activeSinglebandLayer = null;
   }
 }
@@ -781,7 +775,7 @@ function updateComputedUrl(url, keys = null) {
   computedUrl.innerHTML = `<span class="bold text-primary">current XYZ URL - </span>${url}`;
   let metadata = null;
   if (keys != null) {
-    metadata = STATE.dataset_metadata[serializeKeys(keys)];
+    metadata = STATE.datasetMetadata[serializeKeys(keys)];
   }
   updateMetadataText(metadata);
 }
@@ -796,23 +790,22 @@ function updateMetadataText(metadata) {
     metadataField.style.display = 'none';
     return;
   }
+
+  metadata.range[0] = Number(metadata.range[0].toFixed(2));
+  metadata.range[1] = Number(metadata.range[1].toFixed(2));
+
   metadataField.style.display = 'block';
-  metadataField.innerHTML =
-    '<span class="bold text-primary">current metadata -</span> ';
-  if (metadata.mean)
-    metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
+  metadataField.innerHTML = '<span class="bold text-primary">current metadata -</span> ';
+  if (metadata.mean) metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
   if (metadata.range)
     metadataField.innerHTML += ` range: ${JSON.stringify(metadata.range)}`;
-  if (metadata.stdev)
-    metadataField.innerHTML += ` stdev: ${metadata.stdev.toFixed(2)}`;
+  if (metadata.stdev) metadataField.innerHTML += ` stdev: ${metadata.stdev.toFixed(2)}`;
   if (metadata.valid_percentage)
     metadataField.innerHTML += ` valid_percentage: ${metadata.valid_percentage.toFixed(
       2
     )}`;
   if (Object.keys(metadata.metadata).length > 0)
-    metadataField.innerHTML += ` metadata: ${JSON.stringify(
-      metadata.metadata
-    )}`;
+    metadataField.innerHTML += ` metadata: ${JSON.stringify(metadata.metadata)}`;
 }
 
 /**
@@ -832,35 +825,29 @@ function toggleLayerInfo() {
   const layerContent = document.getElementById('layerInfo__container--content');
   const layerToggle = document.getElementById('layerInfo__toggle--icon');
   layerToggle.innerHTML = layerToggle.innerHTML === '×' ? 'i' : '×';
-  layerContent.style.display =
-    layerContent.style.display === 'block' ? 'none' : 'block';
+  layerContent.style.display = layerContent.style.display === 'block' ? 'none' : 'block';
 }
 
 /**
- *  Called after initializeApp. adds event listeners to resize bar
+ * Hides reset and export buttons
  */
-function addResizeListeners() {
-  const BORDER_SIZE = 6;
-  const panel = document.getElementById('resizable__buffer');
-  panel.addEventListener(
-    'mousedown',
-    function (e) {
-      e.preventDefault();
-      if (e.offsetX < BORDER_SIZE) {
-        STATE.m_pos = e.x;
-        document.addEventListener('mousemove', resize, false);
-      }
-    },
-    false
-  );
+function hideRegionButtons() {
+  $('#clear-button').addClass('d-none');
+  $('#clear-button').removeClass('d-inline-block');
 
-  document.addEventListener(
-    'mouseup',
-    function () {
-      document.removeEventListener('mousemove', resize, false);
-    },
-    false
-  );
+  $('#export-button').addClass('d-none');
+  $('#export-button').removeClass('d-inline-block');
+}
+
+/**
+ * Displays reset and export buttons
+ */
+function showControlButtons() {
+  $('#clear-button').removeClass('d-none');
+  $('#clear-button').addClass('d-inline-block');
+
+  $('#export-button').removeClass('d-none');
+  $('#export-button').addClass('d-inline-block');
 }
 
 /**
@@ -868,25 +855,6 @@ function addResizeListeners() {
  */
 function removeSpinner() {
   document.getElementById('loader__container').style.display = 'none';
-}
-
-/**
- *  Resizes map and sidebar, repositions resize bar
- */
-function resize(e) {
-  const sidebar = document.getElementById('controls');
-  const resizeBuffer = document.getElementById('resizable__buffer');
-  const map = document.getElementById('map');
-  const panel = document.getElementById('resizable__buffer');
-
-  const dx = e.x - STATE.m_pos;
-  STATE.m_pos = e.x;
-
-  let posX = parseInt(getComputedStyle(panel, '').marginLeft) + dx + 'px';
-  sidebar.style.width =
-    parseInt(getComputedStyle(panel, '').marginLeft) + dx - 50 + 'px';
-  resizeBuffer.style.marginLeft = posX;
-  map.style.left = posX;
 }
 
 /**
@@ -900,9 +868,9 @@ function createMetadataArray(region, bandName) {
   currentRegionMetaData.push(region.split(' ').join(''));
   currentRegionMetaData.push(bandName);
 
-  httpGet(
-    assembleMetadataURL(STATE.remote_host, currentRegionMetaData)
-  ).then((metadata) => storeMetadata(metadata));
+  httpGet(assembleMetadataURL(currentRegionMetaData)).then((metadata) =>
+    storeMetadata(metadata)
+  );
 
   return currentRegionMetaData;
 }
@@ -912,19 +880,16 @@ function createMetadataArray(region, bandName) {
  * @param {JSON} content
  */
 function createListElement(content) {
-  const listElement = document.createElement('li');
   const reducedName = content.name.split(' ').join('');
+  const listElementId = reducedName + '/' + content.id;
 
-  listElement.innerHTML = content.name;
-  listElement.id = reducedName;
-  listElement.classList.add('clickable');
-
-  listElement.addEventListener(
-    'click',
-    toggleSinglebandMapLayer.bind(null, reducedName)
+  const listElement = $(
+    `<li id='${listElementId}' class='clickable'>${content.name}</li>`
   );
-  listElement.addEventListener('mouseenter', toggleDatasetMouseover.bind(this));
-  listElement.addEventListener('mouseleave', toggleDatasetMouseleave);
+
+  listElement.on('click', toggleSinglebandMapLayer.bind(null, listElementId));
+  listElement.on('mouseenter', toggleDatasetMouseover.bind(this));
+  listElement.on('mouseleave', toggleDatasetMouseleave);
 
   return listElement;
 }
@@ -934,17 +899,14 @@ function createListElement(content) {
  *
  * @param {Object} inputContent
  */
-function createNewRadioButton(inputContent) {
-  let newRadioButton = document.createElement('input');
-  newRadioButton.setAttribute('type', 'radio');
-  newRadioButton.setAttribute('value', inputContent['name'].toLowerCase());
-  newRadioButton.setAttribute('id', inputContent['name'].toLowerCase());
-  newRadioButton.setAttribute(
-    'name',
-    inputContent['groupName'] ? inputContent['groupName'] : 'bandRadioButon'
+function createNewbandRadioButton(inputContent) {
+  const contentName = inputContent['name'];
+
+  let newbandRadioButton = $(
+    `<input type="radio" id='${contentName}' value='${contentName}' name="bandRadioButton" />`
   );
 
-  return newRadioButton;
+  return newbandRadioButton;
 }
 
 /**
@@ -954,24 +916,18 @@ function createNewRadioButton(inputContent) {
  * @param {string} labelContent
  */
 function createNewInputLabel(inputName, labelContent) {
-  let newInputLabel = document.createElement('label');
-  newInputLabel.setAttribute('for', inputName.toLowerCase());
-  newInputLabel.innerHTML = labelContent;
-
-  return newInputLabel;
+  return $(`<label for="${inputName}">${labelContent}</li>`);
 }
 
 /**
  * Add an event listener to each band input to toggle a new layer
  */
-function addRadioButtonListeners() {
-  const radioButtons = document.querySelectorAll('input[type=radio]');
+function addbandRadioButtonListeners() {
+  const bandRadioButtons = document.querySelectorAll('input[type="radio"]');
 
-  radioButtons.forEach((radioButton) => {
+  bandRadioButtons.forEach((radioButton) => {
     radioButton.addEventListener('change', () => {
-      $('#clear-button').toggleClass('d-inline-block');
-      $('#clear-button').toggleClass('d-none');
-      getSelectedBandLayer(radioButtons);
+      getSelectedBandLayer(bandRadioButtons);
     });
   });
 }
@@ -989,7 +945,7 @@ function initializeApp(hostname) {
     hostname = hostname.slice(0, hostname.length - 1);
   }
 
-  STATE.remote_host = hostname;
+  STATE.remoteHost = hostname;
   getColormapValues(hostname)
     .then(() => getKeys(hostname))
     .then((keys) => {
@@ -1007,3 +963,21 @@ function initializeApp(hostname) {
       });
     });
 }
+
+/**
+ * Exports functions necessary for testing when compiled with Node
+ */
+function exportModules() {
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      serializeKeys,
+      assembleSinglebandURL,
+      httpGet,
+      getKeys,
+      compareArray,
+      createListElement,
+    };
+  }
+}
+
+exportModules();
