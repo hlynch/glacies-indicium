@@ -32,7 +32,30 @@
           <h5 class="modal-title">Layer Info</h5>
           <div>
             <p id="layerInfo__URL">current layer:</p>
-            <p id="layerInfo__metadata"></p>
+          </div>
+          <div id="layerInfo__metadata">
+            <div class="card m-0 p-0 bg-very-dark-dm">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Mean</th>
+                      <th>Range</th>
+                      <th>Standard Deviation</th>
+                      <th>Valid Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td id="mean"></td>
+                      <td id="range"></td>
+                      <td id="stdDev"></td>
+                      <td id="validPercent"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           <div class="text-right mt-20">
             <a href="#" class="btn btn-primary mr-5" role="button">Close</a>

@@ -17,6 +17,7 @@ const errorProxy = (arr) =>
 
 const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
+const OUTPUT_FOLDER = '/static/mosaics/optimized';
 const COLORMAPS = [
   { displayName: 'Greyscale', id: 'greys_r' },
   { displayName: 'Blue-Red', id: 'rdbu_r' },
@@ -442,7 +443,7 @@ function filterRegions(element) {
  */
 function updateDatasetList(datasets) {
   const regionContainer = $('#search-results');
-  const dataSetFileName = 'alphaPrototypeMockData';
+  const dataSetFileName = 'regions';
 
   httpGet(`/getJsonFile/${dataSetFileName}`)
     .then((data) => {
@@ -611,7 +612,7 @@ function toggleSinglebandMapLayer(currentRegion, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#export-button a').attr('href', `/static/mosaics/optimized/${fileName}`);
+  $('#export-button a').attr('href', `${OUTPUT_FOLDER}/${fileName}`);
 }
 
 /**
@@ -794,6 +795,12 @@ function updateMetadataText(metadata) {
   metadata.range[0] = Number(metadata.range[0].toFixed(2));
   metadata.range[1] = Number(metadata.range[1].toFixed(2));
 
+  $('#mean').html(`${metadata.mean.toFixed(2)}`);
+  $('#range').html(`${JSON.stringify(metadata.range)}`);
+  $('#stdDev').html(`${metadata.stdev.toFixed(2)}`);
+  $('#validPercent').html(`${metadata.valid_percentage.toFixed(2)}`);
+
+  /*
   metadataField.style.display = 'block';
   metadataField.innerHTML = '<span class="bold text-primary">current metadata -</span> ';
   if (metadata.mean) metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
@@ -805,7 +812,7 @@ function updateMetadataText(metadata) {
       2
     )}`;
   if (Object.keys(metadata.metadata).length > 0)
-    metadataField.innerHTML += ` metadata: ${JSON.stringify(metadata.metadata)}`;
+    metadataField.innerHTML += ` metadata: ${JSON.stringify(metadata.metadata)}`; */
 }
 
 /**
