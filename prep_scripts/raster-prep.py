@@ -11,13 +11,15 @@ import utilities
 REGIONS_FILE = 'all_regions.csv'
 COORDINATES_FILE = 'L4_regions_sparse.csv'
 REGIONS_JSON_FILE = 'all_regions.json'
-DEFAULT_OUTPUT_FOLDER = '..\\terracotta\\client\\static\\mosaics\\'
+DEFAULT_OUTPUT_FOLDER = Path('../terracotta/client/static/mosaics/')
 
 
 def add_parser_arguments():
     description = 'Process some GeoTIFFs according to a regional boundary key'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--data_folder', '-d', help='Location of some GeoTIFF files')
+    parser.add_argument('--remove_image_border', '-r', action='store_true',
+                        help='Set nodata value to be 0 to remove black borders')
 
     return parser
 
@@ -29,6 +31,7 @@ def main():
     # get the path to the data folder and output folder from the argument
     data_folder = Path(args.data_folder)
     output_folder = Path(DEFAULT_OUTPUT_FOLDER)
+    should_remove_border = args.remove_image_border
 
     region_centers = utilities.ingest_csv_file(COORDINATES_FILE)
     print("found " + str(len(region_centers)) + " regions in key file")
@@ -42,7 +45,7 @@ def main():
 
         input("press ENTER to continue...")
 
-        mosaics.build_mosaics(temp_folder, output_folder, region_centers)
+        mosaics.build_mosaics(temp_folder, output_folder, should_remove_border)
 
         shutil.rmtree(temp_folder)
 

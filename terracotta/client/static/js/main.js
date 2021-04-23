@@ -17,6 +17,7 @@ const errorProxy = (arr) =>
 
 const DATASETS_PER_PAGE = 100;
 const THUMBNAIL_SIZE = [128, 128];
+const OUTPUT_FOLDER = '/static/mosaics/optimized';
 const COLORMAPS = [
   { displayName: 'Greyscale', id: 'greys_r' },
   { displayName: 'Blue-Red', id: 'rdbu_r' },
@@ -93,7 +94,12 @@ function assembleMetadataURL(dsKeys) {
  *
  * @return {string} singleband URL.
  */
-function assembleSinglebandURL(keys, options, preview, remoteHost = STATE.remoteHost) {
+function assembleSinglebandURL(
+  keys,
+  options,
+  preview,
+  remoteHost = STATE.remoteHost
+) {
   let request_url;
   if (preview) {
     request_url = `${remoteHost}/singleband/${keys.join(
@@ -168,7 +174,9 @@ function getColormapValues(remoteHost, num_values = 100) {
  */
 function initUI(remoteHost, keys) {
   httpGet('/getJsonFile/bandNames').then((result) => {
-    result.length >= 5 ? createDropdownBandInputs(result) : createBandInputs(result);
+    result.length >= 5
+      ? createDropdownBandInputs(result)
+      : createBandInputs(result);
   });
 
   // initialize colormap selector
@@ -442,7 +450,7 @@ function filterRegions(element) {
  */
 function updateDatasetList(datasets) {
   const regionContainer = $('#search-results');
-  const dataSetFileName = 'alphaPrototypeMockData';
+  const dataSetFileName = 'regions';
 
   httpGet(`/getJsonFile/${dataSetFileName}`)
     .then((data) => {
@@ -611,7 +619,7 @@ function toggleSinglebandMapLayer(currentRegion, resetView = true) {
  * @param {string} fileDownloadLink
  */
 function updateExportButtonLink(fileName) {
-  $('#export-button a').attr('href', `/static/mosaics/optimized/${fileName}`);
+  $('#export-button a').attr('href', `${OUTPUT_FOLDER}/${fileName}`);
 }
 
 /**
@@ -621,12 +629,22 @@ function updateLogo() {
   halfmoon.readCookie('halfmoon_preferredMode')
     ? halfmoon.readCookie('halfmoon_preferredMode') == 'light-mode'
       ? $('#header-one').attr('src', '/static/images/header_large.png')
-      : $('#header-one').attr('src', '/static/images/header_large_dark_mode.png')
+      : $('#header-one').attr(
+          'src',
+          '/static/images/header_large_dark_mode.png'
+        )
     : $('#header-one').attr('src', '/static/images/header_large.png');
 
   $('#header-one').attr('src') === '/static/images/header_large.png'
     ? $('#viewModeIcon').attr('class', 'fas fa-sun')
     : $('#viewModeIcon').attr('class', 'fas fa-moon');
+
+  if (
+    $('body').hasClass('dark-mode') &&
+    $('#viewModeIcon').hasClass('fa-sun')
+  ) {
+    $('body').removeClass('dark-mode');
+  }
 }
 
 /**
@@ -708,11 +726,13 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
 function calcScreenCovered(dsBounds, screenBounds) {
   const xOverlap = Math.max(
     0,
-    Math.min(dsBounds[2], screenBounds[2]) - Math.max(dsBounds[0], screenBounds[0])
+    Math.min(dsBounds[2], screenBounds[2]) -
+      Math.max(dsBounds[0], screenBounds[0])
   );
   const yOverlap = Math.max(
     0,
-    Math.min(dsBounds[3], screenBounds[3]) - Math.max(dsBounds[1], screenBounds[1])
+    Math.min(dsBounds[3], screenBounds[3]) -
+      Math.max(dsBounds[1], screenBounds[1])
   );
   const overlapArea = xOverlap * yOverlap;
   const screenArea =
@@ -794,6 +814,12 @@ function updateMetadataText(metadata) {
   metadata.range[0] = Number(metadata.range[0].toFixed(2));
   metadata.range[1] = Number(metadata.range[1].toFixed(2));
 
+  $('#mean').html(`${metadata.mean.toFixed(2)}`);
+  $('#range').html(`${JSON.stringify(metadata.range)}`);
+  $('#stdDev').html(`${metadata.stdev.toFixed(2)}`);
+  $('#validPercent').html(`${metadata.valid_percentage.toFixed(2)}`);
+
+  /*
   metadataField.style.display = 'block';
   metadataField.innerHTML = '<span class="bold text-primary">current metadata -</span> ';
   if (metadata.mean) metadataField.innerHTML += `mean: ${metadata.mean.toFixed(2)}`;
@@ -805,7 +831,7 @@ function updateMetadataText(metadata) {
       2
     )}`;
   if (Object.keys(metadata.metadata).length > 0)
-    metadataField.innerHTML += ` metadata: ${JSON.stringify(metadata.metadata)}`;
+    metadataField.innerHTML += ` metadata: ${JSON.stringify(metadata.metadata)}`; */
 }
 
 /**
@@ -825,7 +851,8 @@ function toggleLayerInfo() {
   const layerContent = document.getElementById('layerInfo__container--content');
   const layerToggle = document.getElementById('layerInfo__toggle--icon');
   layerToggle.innerHTML = layerToggle.innerHTML === '×' ? 'i' : '×';
-  layerContent.style.display = layerContent.style.display === 'block' ? 'none' : 'block';
+  layerContent.style.display =
+    layerContent.style.display === 'block' ? 'none' : 'block';
 }
 
 /**

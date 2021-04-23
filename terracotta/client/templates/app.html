@@ -4,11 +4,26 @@
     <title>Glacies Indicium</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto" />
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/leaflet.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
-    <link href="{{ url_for('static', filename='css/all.min.css') }}" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto"
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='favicon.ico') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/leaflet.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+    />
+    <link
+      href="{{ url_for('static', filename='css/all.min.css') }}"
+      rel="stylesheet"
+    />
     <link
       href="{{ url_for('static', filename='css/halfmoon-variables.min.css') }}"
       rel="stylesheet"
@@ -32,7 +47,30 @@
           <h5 class="modal-title">Layer Info</h5>
           <div>
             <p id="layerInfo__URL">current layer:</p>
-            <p id="layerInfo__metadata"></p>
+          </div>
+          <div id="layerInfo__metadata">
+            <div class="card m-0 p-0 bg-very-dark-dm">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Mean</th>
+                      <th>Range</th>
+                      <th>Standard Deviation</th>
+                      <th>Valid Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td id="mean"></td>
+                      <td id="range"></td>
+                      <td id="stdDev"></td>
+                      <td id="validPercent"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
           <div class="text-right mt-20">
             <a href="#" class="btn btn-primary mr-5" role="button">Close</a>
@@ -55,7 +93,7 @@
         <a href="#" class="navbar-brand">
           <img
             src="{{ url_for('static', filename='images/header_large.png') }}"
-            style="height: 50px"
+            style="height: 50px;"
             id="header-one"
             class="header"
           />
@@ -110,7 +148,9 @@
             </h2>
           </div>
           <div id="details__content">
-            <p class="clear" id="info-text">Glacies Indicium capstone project!</p>
+            <p class="clear" id="info-text">
+              Glacies Indicium capstone project!
+            </p>
             <p id="details__host--title">
               <b>host: </b> <span id="details__host--url">{{ hostname }}</span>
             </p>
@@ -165,7 +205,11 @@
               <h2 class="content-title">Region Keys</h2>
               <div class="input-group" id="search-group">
                 <span>
-                  <i class="fas fa-search" id="search-icon" aria-hidden="true"></i>
+                  <i
+                    class="fas fa-search"
+                    id="search-icon"
+                    aria-hidden="true"
+                  ></i>
                 </span>
                 <input
                   id="search-input"
@@ -176,7 +220,10 @@
                 />
               </div>
               <div id="thumbnail-holder"></div>
-              <div class="scrolling-list overflow-y-auto mt-10" id="search-results"></div>
+              <div
+                class="scrolling-list overflow-y-auto mt-10"
+                id="search-results"
+              ></div>
             </div>
             <div id="loader__container">
               <div id="loader__spinner--control" class="loader__spinner"></div>

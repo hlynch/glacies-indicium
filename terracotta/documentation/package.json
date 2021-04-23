@@ -1,0 +1,12 @@
+{
+  "name": "terracotta-client-documentation",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "generate-docs": "jsdoc ../client/static/js/main.js -c ./jsdoc.conf.json"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jsdoc": "^3.6.6"
+  }
+}

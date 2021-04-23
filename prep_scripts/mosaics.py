@@ -4,7 +4,7 @@ import os
 import subprocess
 
 
-def build_mosaics(temp_folder, output_folder, region_centers):
+def build_mosaics(temp_folder, output_folder, should_remove_border):
     print("####### REGIONAL MOSAIC GENERATION ROUTINE #######")
 
     pathlist = Path(temp_folder).glob('*.tif')
@@ -24,7 +24,8 @@ def build_mosaics(temp_folder, output_folder, region_centers):
                 imageGroupList += str(path) + " "
         print("\nGroup: " + group)
 
-        run_mosaic_subprocess(imageGroupList, group, output_folder)
+        translate_string = create_translate_string(output_folder, group, should_remove_border)
+        run_mosaic_subprocess(imageGroupList, translate_string)
 
 
 def create_file_groups(pathlist):
@@ -39,13 +40,22 @@ def create_file_groups(pathlist):
     return groups
 
 
-def run_mosaic_subprocess(group_list, group, output_folder):
+def create_translate_string(output_folder, group, should_remove_border):
+    translate_string = "gdal_translate -of GTiff "
+
+    if should_remove_border:
+        translate_string += "-a_nodata 0 "
+
+    translate_string += "-co \"TILED=YES\" mosaic.vrt " + \
+        str(output_folder) + "/" + group + ".tif"
+
+    return translate_string
+
+
+def run_mosaic_subprocess(group_list, translate_string):
     vrtString = "gdalbuildvrt mosaic.vrt " + group_list
 
     subprocess.call(vrtString, shell=True)
-
-    translate_string = "gdal_translate -of GTiff -co \"TILED=YES\" mosaic.vrt " + \
-        str(output_folder) + "/" + group + ".tif"
 
     subprocess.call(translate_string, shell=True)
 
