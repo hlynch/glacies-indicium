@@ -8,7 +8,7 @@ import utilities
 import uuid
 
 REGIONS_FILE = 'all_regions.csv'
-REGIONS_JSON_FILE = '..\\terracotta\\client\\static\\data\\regions.json'
+REGIONS_JSON_FILE = Path('../terracotta/client/static/data/regions.json')
 
 
 def generate_json_hierarchy(csv_file, json_file):

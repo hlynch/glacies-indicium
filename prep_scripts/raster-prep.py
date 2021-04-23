@@ -11,7 +11,7 @@ import utilities
 REGIONS_FILE = 'all_regions.csv'
 COORDINATES_FILE = 'L4_regions_sparse.csv'
 REGIONS_JSON_FILE = 'all_regions.json'
-DEFAULT_OUTPUT_FOLDER = '..\\terracotta\\client\\static\\mosaics\\'
+DEFAULT_OUTPUT_FOLDER = Path('../terracotta/client/static/mosaics/')
 
 
 def add_parser_arguments():

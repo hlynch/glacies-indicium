@@ -94,7 +94,12 @@ function assembleMetadataURL(dsKeys) {
  *
  * @return {string} singleband URL.
  */
-function assembleSinglebandURL(keys, options, preview, remoteHost = STATE.remoteHost) {
+function assembleSinglebandURL(
+  keys,
+  options,
+  preview,
+  remoteHost = STATE.remoteHost
+) {
   let request_url;
   if (preview) {
     request_url = `${remoteHost}/singleband/${keys.join(
@@ -169,7 +174,9 @@ function getColormapValues(remoteHost, num_values = 100) {
  */
 function initUI(remoteHost, keys) {
   httpGet('/getJsonFile/bandNames').then((result) => {
-    result.length >= 5 ? createDropdownBandInputs(result) : createBandInputs(result);
+    result.length >= 5
+      ? createDropdownBandInputs(result)
+      : createBandInputs(result);
   });
 
   // initialize colormap selector
@@ -622,12 +629,22 @@ function updateLogo() {
   halfmoon.readCookie('halfmoon_preferredMode')
     ? halfmoon.readCookie('halfmoon_preferredMode') == 'light-mode'
       ? $('#header-one').attr('src', '/static/images/header_large.png')
-      : $('#header-one').attr('src', '/static/images/header_large_dark_mode.png')
+      : $('#header-one').attr(
+          'src',
+          '/static/images/header_large_dark_mode.png'
+        )
     : $('#header-one').attr('src', '/static/images/header_large.png');
 
   $('#header-one').attr('src') === '/static/images/header_large.png'
     ? $('#viewModeIcon').attr('class', 'fas fa-sun')
     : $('#viewModeIcon').attr('class', 'fas fa-moon');
+
+  if (
+    $('body').hasClass('dark-mode') &&
+    $('#viewModeIcon').hasClass('fa-sun')
+  ) {
+    $('body').removeClass('dark-mode');
+  }
 }
 
 /**
@@ -709,11 +726,13 @@ function updateSinglebandLayer(currentRegion, resetView = true) {
 function calcScreenCovered(dsBounds, screenBounds) {
   const xOverlap = Math.max(
     0,
-    Math.min(dsBounds[2], screenBounds[2]) - Math.max(dsBounds[0], screenBounds[0])
+    Math.min(dsBounds[2], screenBounds[2]) -
+      Math.max(dsBounds[0], screenBounds[0])
   );
   const yOverlap = Math.max(
     0,
-    Math.min(dsBounds[3], screenBounds[3]) - Math.max(dsBounds[1], screenBounds[1])
+    Math.min(dsBounds[3], screenBounds[3]) -
+      Math.max(dsBounds[1], screenBounds[1])
   );
   const overlapArea = xOverlap * yOverlap;
   const screenArea =
@@ -832,7 +851,8 @@ function toggleLayerInfo() {
   const layerContent = document.getElementById('layerInfo__container--content');
   const layerToggle = document.getElementById('layerInfo__toggle--icon');
   layerToggle.innerHTML = layerToggle.innerHTML === '×' ? 'i' : '×';
-  layerContent.style.display = layerContent.style.display === 'block' ? 'none' : 'block';
+  layerContent.style.display =
+    layerContent.style.display === 'block' ? 'none' : 'block';
 }
 
 /**

@@ -4,7 +4,7 @@ import rasterio
 import subprocess
 import utilities
 
-BAND_NAMES_FILE = '..\\terracotta\\client\\static\\data\\bandNames.json'
+BAND_NAMES_FILE = Path('../terracotta/client/static/data/bandNames.json')
 
 
 def extract_bands(data_folder_in, output_folder):
